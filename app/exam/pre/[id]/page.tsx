@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CameraManager } from '@/lib/cameraManager';
@@ -9,6 +9,7 @@ import Navbar from '@/components/ui/Navbar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import StatusChip from '@/components/ui/StatusChip';
+import Loading from '@/components/ui/Loading';
 import { Camera, CheckCircle2, AlertCircle, Shield, Info, ArrowLeft } from 'lucide-react';
 
 type CameraStatus = 'idle' | 'requesting' | 'ready' | 'error';
@@ -20,7 +21,7 @@ interface AssessmentStartData {
   attemptId: string;
 }
 
-export default function PreAssessmentPage() {
+function PreAssessmentContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -316,3 +317,19 @@ export default function PreAssessmentPage() {
     </div>
   );
 }
+
+export default function PreAssessmentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-paper flex flex-col justify-center items-center gap-3">
+          <Loading size="lg" />
+          <p className="text-xs text-graphite font-mono">Calibrating assessment environment...</p>
+        </div>
+      }
+    >
+      <PreAssessmentContent />
+    </Suspense>
+  );
+}
+

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
@@ -10,7 +10,7 @@ import Loading from '@/components/ui/Loading';
 import { checkAndClearExpiredSession } from '@/lib/sessionUtils';
 import type { AttemptReport } from '@/src/server/reporting/types';
 
-export default function AdminCompareAttemptsPage() {
+function AdminCompareAttemptsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const assessmentId = searchParams.get('assessmentId');
@@ -284,3 +284,22 @@ export default function AdminCompareAttemptsPage() {
     </div>
   );
 }
+
+export default function AdminCompareAttemptsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-paper text-ink">
+          <Navbar />
+          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
+            <Loading size="lg" />
+            <p className="text-slate font-sans text-sm">Loading candidate comparison...</p>
+          </div>
+        </div>
+      }
+    >
+      <AdminCompareAttemptsContent />
+    </Suspense>
+  );
+}
+
