@@ -1,239 +1,196 @@
-'use client';
-
 import React from 'react';
+import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import {
+  CheckCircle,
+  Shield,
+  Layers,
+  FileText,
+  Award,
+  Users,
+} from 'lucide-react';
 import Navbar from '@/components/ui/Navbar';
-import Card from '@/components/ui/Card';
+import Footer from '@/components/ui/Footer';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { aboutContent } from '@/src/content/about';
 
-const pillars = [
-    {
-        title: 'Integrity By Design',
-        description:
-            'Every assessment flow is built to reduce ambiguity and protect fairness through consistent session controls and transparent review signals.',
-    },
-    {
-        title: 'Operational Excellence',
-        description:
-            'Administrators can manage assessments, monitor attempts, and review outcomes through one streamlined platform experience.',
-    },
-    {
-        title: 'Candidate-First Experience',
-        description:
-            'The interface is structured to be clear and predictable, helping serious candidates focus on performance rather than platform friction.',
-    },
-];
-
-const capabilities = [
-    'Assessment authoring and category-level organization for scalable test design.',
-    'AI-assisted proctoring workflows to detect suspicious patterns in real time.',
-    'Violation and attempt tracking for audit visibility and policy enforcement.',
-    'Role-based admin and candidate views with secure authentication.',
-    'Reporting-ready output for hiring teams and training organizations.',
-    'API-backed architecture for maintenance, analytics, and future integrations.',
-];
-
-const processSteps = [
-    {
-        step: '01',
-        title: 'Onboarding and Access',
-        detail: 'Users authenticate, roles are validated, and access is scoped to candidate or admin workflows.',
-    },
-    {
-        step: '02',
-        title: 'Assessment Preparation',
-        detail: 'Candidates select assessments and complete pre-exam readiness checks before the session begins.',
-    },
-    {
-        step: '03',
-        title: 'Monitored Exam Session',
-        detail: 'The exam runs with environment controls and behavior monitoring to preserve integrity.',
-    },
-    {
-        step: '04',
-        title: 'Submission and Evaluation',
-        detail: 'Attempts are submitted, scored, and compiled into clear result views for informed decisions.',
-    },
-];
-
-const outcomes = [
-    {
-        title: 'For Hiring Teams',
-        description:
-            'Standardize candidate evaluations, reduce manual screening effort, and improve confidence in shortlisting decisions.',
-    },
-    {
-        title: 'For Academic and Training Programs',
-        description:
-            'Conduct remote assessments with stronger exam governance and measurable process consistency.',
-    },
-    {
-        title: 'For Candidates',
-        description:
-            'Participate in structured assessments where outcomes reflect preparation, skill, and performance quality.',
-    },
-];
+export const metadata: Metadata = {
+  title: "About HirePerfect",
+  description: "We make remote assessments trustworthy for hiring teams, colleges and training programmes.",
+};
 
 export default function AboutPage() {
-    return (
-        <div className="min-h-screen bg-[#020205] text-white bg-grid selection:bg-cyan-500/30 selection:text-cyan-200">
-            <Navbar />
+  return (
+    <div className="min-h-screen flex flex-col bg-paper">
+      <Navbar />
 
-            <main className="page-container pt-32 pb-20 px-6">
-                <div className="container mx-auto max-w-6xl">
-                    <section className="text-center mb-20 animate-fade-in">
-                        <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.35em] mb-4 block">
-                            About HirePerfect
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.92] mb-8">
-                            PROFESSIONAL AI-ASSESSMENT
-                            <br />
-                            <span className="text-gradient">INFRASTRUCTURE FOR MODERN TEAMS</span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-slate-300 max-w-4xl mx-auto font-medium leading-relaxed">
-                            HirePerfect is a secure assessment platform for organizations that require fairness, visibility,
-                            and consistency in hiring and skill evaluation workflows. The platform combines monitored delivery,
-                            operational controls, and structured reporting to support high-stakes decisions with confidence.
-                        </p>
-                    </section>
-
-                    <section className="grid md:grid-cols-3 gap-6 mb-20">
-                        {pillars.map((pillar, index) => (
-                            <Card
-                                key={pillar.title}
-                                className={`p-8 bg-[#050510] border-white/10 transition-all rounded-3xl ${
-                                    index === 1 ? 'hover:border-purple-500/40' : 'hover:border-cyan-500/40'
-                                }`}
-                            >
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Core Principle</span>
-                                <h2 className="text-xl font-black tracking-tight mt-3 mb-4">{pillar.title}</h2>
-                                <p className="text-slate-300 leading-relaxed font-medium">{pillar.description}</p>
-                            </Card>
-                        ))}
-                    </section>
-
-                    <section className="mb-20">
-                        <Card className="p-10 md:p-12 bg-[#050510] border-white/10 rounded-3xl">
-                            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-8">What The Platform Includes</h2>
-                            <div className="grid md:grid-cols-2 gap-5">
-                                {capabilities.map((capability) => (
-                                    <div
-                                        key={capability}
-                                        className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-300 font-medium leading-relaxed"
-                                    >
-                                        {capability}
-                                    </div>
-                                ))}
-                            </div>
-                        </Card>
-                    </section>
-
-                    <section className="mb-20">
-                        <div className="grid lg:grid-cols-12 gap-8">
-                            <Card className="lg:col-span-5 p-10 bg-[#050510] border-white/10 rounded-3xl">
-                                <h2 className="text-3xl font-black tracking-tight mb-6">Why Organizations Choose HirePerfect</h2>
-                                <p className="text-slate-300 font-medium leading-relaxed mb-5">
-                                    Remote evaluations can lose reliability when controls are weak or inconsistent. HirePerfect
-                                    addresses this by combining monitored sessions, structured workflows, and review-ready logs.
-                                </p>
-                                <p className="text-slate-300 font-medium leading-relaxed mb-5">
-                                    The result is a system that helps teams maintain process quality at scale without adding
-                                    heavy operational overhead.
-                                </p>
-                                <p className="text-slate-300 font-medium leading-relaxed">
-                                    From test creation to final decision support, the platform is designed for professional
-                                    evaluation standards in real-world deployments.
-                                </p>
-                            </Card>
-
-                            <Card className="lg:col-span-7 p-10 bg-[#050510] border-white/10 rounded-3xl">
-                                <h2 className="text-3xl font-black tracking-tight mb-6">How It Works</h2>
-                                <div className="space-y-5">
-                                    {processSteps.map((item) => (
-                                        <div
-                                            key={item.step}
-                                            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 flex gap-4 items-start"
-                                        >
-                                            <span className="text-cyan-300 font-black text-sm tracking-[0.2em]">{item.step}</span>
-                                            <div>
-                                                <p className="text-white font-black tracking-tight mb-1">{item.title}</p>
-                                                <p className="text-slate-300 font-medium leading-relaxed">{item.detail}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
-                        </div>
-                    </section>
-
-                    <section className="mb-20">
-                        <Card className="p-10 md:p-12 bg-[#050510] border-white/10 rounded-3xl relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/5 rounded-full blur-3xl" />
-                            <div className="relative z-10">
-                                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-6">Security, Privacy, and Professional Standards</h2>
-                                <div className="grid md:grid-cols-2 gap-8 text-slate-300 font-medium leading-relaxed">
-                                    <p>
-                                        HirePerfect emphasizes controlled assessment environments, structured access policies,
-                                        and traceable events to support responsible exam governance. Monitoring signals are
-                                        handled as operational quality controls for integrity-sensitive workflows.
-                                    </p>
-                                    <p>
-                                        The architecture supports reviewability and accountability, helping institutions and
-                                        hiring teams align their process with policy requirements and internal compliance
-                                        expectations.
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                    </section>
-
-                    <section className="mb-20">
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight text-center mb-10">Who Benefits</h2>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {outcomes.map((item, index) => (
-                                <Card
-                                    key={item.title}
-                                    className={`p-8 bg-[#050510] border-white/10 transition-all rounded-3xl ${
-                                        index === 2 ? 'hover:border-emerald-500/40' : 'hover:border-purple-500/40'
-                                    }`}
-                                >
-                                    <h3 className="text-xl font-black tracking-tight mb-4">{item.title}</h3>
-                                    <p className="text-slate-300 font-medium leading-relaxed">{item.description}</p>
-                                </Card>
-                            ))}
-                        </div>
-                    </section>
-
-                    <section className="text-center bg-[#050510] border border-white/10 p-14 rounded-[2.5rem] relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-72 h-72 bg-cyan-500/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
-                        <div className="relative z-10 max-w-3xl mx-auto">
-                            <h2 className="text-3xl md:text-4xl font-black mb-5 tracking-tight">Build Assessment Trust at Scale</h2>
-                            <p className="text-slate-300 font-medium leading-relaxed mb-8">
-                                Explore assessment tracks, onboard teams, and operate a consistent evaluation framework with
-                                professional-grade confidence.
-                            </p>
-                            <div className="flex items-center justify-center gap-4 flex-wrap">
-                                <Link href="/assessments">
-                                    <Button variant="primary" className="px-8 py-4 uppercase tracking-wider text-xs font-black">
-                                        Explore Assessments
-                                    </Button>
-                                </Link>
-                                <Link href="/signup">
-                                    <Button variant="ghost" className="px-8 py-4 uppercase tracking-wider text-xs font-black">
-                                        Create Account
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </main>
-
-            <footer className="py-12 border-t border-white/5 text-center px-6">
-                <p className="text-slate-500 text-xs font-black uppercase tracking-widest">
-                    (C) 2026 HirePerfect Platform. Built for professional assessment standards.
-                </p>
-            </footer>
+      <main id="main-content" className="flex-1 max-w-container mx-auto px-5 sm:px-8 py-12 md:py-16 w-full">
+        {/* Hero Section */}
+        <div className="max-w-3xl mb-12">
+          <span className="text-xs font-bold uppercase tracking-wider text-signal block mb-2">
+            About HirePerfect
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ink tracking-tight mb-6 leading-tight">
+            {aboutContent.hero.heading}
+          </h1>
+          <p className="text-lg text-graphite leading-relaxed">
+            {aboutContent.hero.lead}
+          </p>
         </div>
-    );
+
+        {/* Workspace Photo */}
+        <div className="relative aspect-[16/9] w-full rounded-panel overflow-hidden bg-sheet border border-rule mb-16 shadow-subtle">
+          <Image
+            src="/images/about-workspace.webp"
+            alt="Team working together in a bright office"
+            fill
+            priority
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            className="object-cover"
+          />
+        </div>
+
+        {/* What We Believe */}
+        <section className="mb-16">
+          <div className="max-w-2xl mb-10">
+            <h2 className="text-2xl font-bold text-ink mb-2">
+              {aboutContent.beliefs.heading}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {aboutContent.beliefs.items.map((item, idx) => (
+              <Card key={idx} className="p-6 flex flex-col justify-between">
+                <div>
+                  <span className="w-8 h-8 rounded-full bg-signal-soft text-signal flex items-center justify-center font-bold text-sm mb-4">
+                    {idx + 1}
+                  </span>
+                  <h3 className="text-base font-bold text-ink mb-2">{item.title}</h3>
+                  <p className="text-xs text-graphite leading-relaxed">{item.description}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* What the Platform Includes */}
+        <section className="bg-sheet border border-rule rounded-panel p-8 sm:p-12 mb-16">
+          <div className="max-w-2xl mb-10">
+            <h2 className="text-2xl font-bold text-ink mb-2">
+              {aboutContent.platformCapabilities.heading}
+            </h2>
+            <p className="text-sm text-graphite">
+              Core technologies powering examination delivery and integrity verification.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {aboutContent.platformCapabilities.items.map((cap, idx) => {
+              const icons = [
+                <Layers key="0" className="w-5 h-5 text-signal" />,
+                <Shield key="1" className="w-5 h-5 text-signal" />,
+                <CheckCircle key="2" className="w-5 h-5 text-signal" />,
+                <FileText key="3" className="w-5 h-5 text-signal" />,
+                <Award key="4" className="w-5 h-5 text-signal" />,
+                <Users key="5" className="w-5 h-5 text-signal" />,
+              ];
+              return (
+                <div key={idx} className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-btn bg-signal-soft flex items-center justify-center shrink-0">
+                    {icons[idx % icons.length]}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-ink mb-1">{cap.title}</h3>
+                    <p className="text-xs text-graphite leading-relaxed">{cap.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Who We Serve */}
+        <section className="mb-16">
+          <div className="max-w-2xl mb-10">
+            <h2 className="text-2xl font-bold text-ink mb-2">
+              {aboutContent.whoWeServe.heading}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {aboutContent.whoWeServe.groups.map((group, idx) => {
+              const groupPhotos = [
+                '/images/who-hiring.webp',
+                '/images/who-campus.webp',
+                '/images/who-academy.webp',
+                '/images/who-candidate.webp',
+              ];
+              return (
+                <div
+                  key={idx}
+                  className="bg-sheet rounded-card border border-rule overflow-hidden p-4 shadow-subtle hover:shadow-floating transition-all duration-200 group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="relative aspect-[4/3] w-full rounded-chip overflow-hidden border border-rule bg-paper mb-3">
+                      <Image
+                        src={groupPhotos[idx]}
+                        alt={group.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 className="text-sm font-bold text-ink mb-1">{group.title}</h3>
+                    <p className="text-xs text-graphite leading-relaxed">{group.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Security and Privacy Standard */}
+        <section className="bg-paper border border-rule rounded-panel p-8 mb-16 text-center max-w-3xl mx-auto">
+          <h2 className="text-lg font-bold text-ink mb-2">
+            {aboutContent.standards.heading}
+          </h2>
+          <p className="text-xs text-graphite leading-relaxed max-w-xl mx-auto mb-4">
+            {aboutContent.standards.body}
+          </p>
+          <Link
+            href={aboutContent.standards.linkHref}
+            className="text-xs font-semibold text-signal hover:underline"
+          >
+            {aboutContent.standards.linkText} →
+          </Link>
+        </section>
+
+        {/* CTA */}
+        <section className="bg-sheet border border-rule rounded-panel p-10 text-center max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold text-ink mb-2">
+            {aboutContent.cta.heading}
+          </h2>
+          <p className="text-sm text-graphite mb-6">
+            {aboutContent.cta.subhead}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href={aboutContent.cta.primaryCta.href}>
+              <Button variant="primary" size="md">
+                {aboutContent.cta.primaryCta.text}
+              </Button>
+            </Link>
+            <Link href={aboutContent.cta.secondaryCta.href}>
+              <Button variant="secondary" size="md">
+                {aboutContent.cta.secondaryCta.text}
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }

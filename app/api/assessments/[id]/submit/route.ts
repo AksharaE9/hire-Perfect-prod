@@ -111,6 +111,14 @@ export async function POST(
         attempt.timeSpent = timeSpent;
         await attempt.save();
 
+        // Generate and save detailed AttemptReport
+        try {
+            const { generateAndSaveReport } = await import('@/src/server/reporting/reportService');
+            await generateAndSaveReport(attempt._id.toString(), { generatedBy: 'system' });
+        } catch (reportErr) {
+            console.error('Non-blocking report generation error on submit:', reportErr);
+        }
+
         return NextResponse.json({
             success: true,
             result: {

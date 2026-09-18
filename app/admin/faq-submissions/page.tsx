@@ -72,20 +72,20 @@ export default function FAQSubmissionsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid selection:bg-cyan-500/30 selection:text-cyan-400">
+        <div className="min-h-screen bg-paper text-ink">
             <Navbar />
 
-            <main className="container mx-auto px-6 py-24 lg:py-32 page-container">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8">
+            <main className="container mx-auto px-6 py-12 lg:py-16 page-container">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                     <div>
-                        <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg mb-4">
+                        <div className="inline-block px-3 py-1 bg-blue-tint border border-info-line text-navy text-[11px] font-bold uppercase tracking-wider rounded-lg mb-3">
                             Communication Inbox
                         </div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.85]">
-                            FAQ <br /><span className="text-gradient">SUBMISSIONS.</span>
+                        <h1 className="text-3xl lg:text-4xl font-black text-navy tracking-tight uppercase">
+                            FAQ Submissions
                         </h1>
-                        <p className="text-slate-400 mt-5 max-w-xl font-medium">
-                            Review and manage contact queries submitted through the homepage FAQ form.
+                        <p className="text-slate mt-1 text-sm max-w-xl font-medium">
+                            Review and manage customer queries submitted through the platform contact forms.
                         </p>
                     </div>
 
@@ -96,54 +96,54 @@ export default function FAQSubmissionsPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && fetchSubmissions()}
-                            className="bg-[#0a0a0f]/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 outline-none w-full md:w-80"
+                            className="bg-white border border-line-strong rounded-lg px-4 py-2.5 text-xs text-ink placeholder:text-slate-soft focus:border-navy outline-none w-full md:w-80 shadow-sm"
                         />
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="bg-[#0a0a0f]/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                            className="bg-white border border-line-strong rounded-lg px-4 py-2.5 text-xs font-bold text-navy uppercase tracking-wider focus:border-navy outline-none shadow-sm cursor-pointer"
                         >
                             <option value="">All Statuses</option>
                             <option value="new">New</option>
                             <option value="reviewed">Reviewed</option>
                             <option value="resolved">Resolved</option>
                         </select>
-                        <Button variant="primary" onClick={fetchSubmissions}>
+                        <Button variant="primary" className="px-5 py-2.5 text-xs font-bold bg-navy hover:bg-navy-2 text-white border-none rounded-lg" onClick={fetchSubmissions}>
                             Refresh
                         </Button>
                     </div>
                 </div>
 
-                <Card className="overflow-hidden border-white/10 bg-[#0a0a0f]/70">
+                <Card className="overflow-hidden border border-line bg-white shadow-sm rounded-xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-white/5 border-b border-white/10">
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Contact</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subject & Message</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Submitted</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                                <tr className="bg-table-head-bg border-b border-table-rule">
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Contact</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Subject & Message</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Submitted</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {submissions.map((submission) => (
-                                    <tr key={submission._id} className="hover:bg-white/[0.02] transition-colors align-top">
-                                        <td className="px-6 py-5">
-                                            <p className="text-white font-black text-sm">{submission.name}</p>
-                                            <p className="text-slate-400 text-xs mt-1">{submission.email}</p>
+                            <tbody className="divide-y divide-table-rule">
+                                {submissions.map((submission, idx) => (
+                                    <tr key={submission._id} className={`hover:bg-table-row-hover transition-colors align-top ${idx % 2 === 1 ? 'bg-table-row-alt' : 'bg-white'}`}>
+                                        <td className="px-6 py-4">
+                                            <p className="text-navy font-bold text-sm">{submission.name}</p>
+                                            <p className="text-slate text-xs mt-0.5">{submission.email}</p>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <p className="text-white font-bold text-sm mb-2">{submission.subject}</p>
-                                            <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                                        <td className="px-6 py-4">
+                                            <p className="text-navy font-bold text-xs mb-1">{submission.subject}</p>
+                                            <p className="text-ink text-xs leading-relaxed whitespace-pre-wrap">
                                                 {submission.message}
                                             </p>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <p className="text-slate-300 text-sm">
+                                        <td className="px-6 py-4">
+                                            <p className="text-slate text-xs">
                                                 {new Date(submission.createdAt).toLocaleString()}
                                             </p>
                                         </td>
-                                        <td className="px-6 py-5">
+                                        <td className="px-6 py-4">
                                             <select
                                                 value={submission.status}
                                                 onChange={(e) =>
@@ -152,7 +152,7 @@ export default function FAQSubmissionsPage() {
                                                         e.target.value as 'new' | 'reviewed' | 'resolved'
                                                     )
                                                 }
-                                                className="bg-[#020205] border border-white/10 rounded-lg px-3 py-2 text-xs text-white uppercase tracking-widest focus:border-cyan-500/50 outline-none"
+                                                className="bg-paper border border-line-strong rounded-md px-2.5 py-1 text-xs font-semibold text-ink uppercase tracking-wider focus:border-navy outline-none cursor-pointer"
                                             >
                                                 <option value="new">New</option>
                                                 <option value="reviewed">Reviewed</option>
@@ -163,7 +163,7 @@ export default function FAQSubmissionsPage() {
                                 ))}
                                 {!loading && submissions.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-slate text-sm">
                                             No submissions found.
                                         </td>
                                     </tr>

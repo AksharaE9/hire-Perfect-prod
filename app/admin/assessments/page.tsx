@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -61,7 +62,6 @@ export default function AssessmentManagement() {
             setLoading(false);
         }
     };
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,187 +128,186 @@ export default function AssessmentManagement() {
         setIsModalOpen(true);
     };
 
-    if (loading && assessments.length === 0) return <Loading variant="spinner" fullScreen text="Loading Mission Parameters..." />;
+    if (loading && assessments.length === 0) return <Loading variant="spinner" fullScreen text="Loading assessment catalog..." />;
 
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
-            {/* Cinematic Background Elements */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/5 blur-[120px] rounded-full"></div>
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent animate-scan shadow-[0_0_15px_rgba(0,242,255,0.5)]"></div>
-            </div>
-
+        <div className="min-h-screen bg-paper text-ink">
             <Navbar />
 
-            <main className="container mx-auto px-6 py-24 lg:py-32 page-container relative z-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-12">
+            <main className="container mx-auto px-6 py-12 lg:py-16 page-container relative z-10">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                     <div>
-                        <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg mb-4 glow-sm">
-                            Mission Parameters
+                        <div className="inline-block px-3 py-1 bg-blue-tint border border-info-line text-navy text-[11px] font-bold uppercase tracking-wider rounded-lg mb-3">
+                            Assessment Catalog
                         </div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.8]">
-                            ASSESSMENT <br /><span className="text-gradient">CATALOG.</span>
+                        <h1 className="text-3xl lg:text-4xl font-black text-navy tracking-tight uppercase">
+                            Assessments
                         </h1>
-                        <p className="text-lg text-slate-400 font-medium mt-6 max-w-lg">
-                            Configure, deploy, and manage evaluation matrices for candidate extraction.
+                        <p className="text-slate text-sm mt-1">
+                            Configure assessment parameters, pricing, and question banks.
                         </p>
                     </div>
 
                     <Button
                         variant="primary"
-                        className="px-8 py-4 uppercase tracking-widest text-[10px] font-black shadow-xl shadow-cyan-500/20 bg-cyan-500 border-none flex items-center gap-2"
+                        className="px-6 py-3 text-xs font-bold bg-navy hover:bg-navy-2 text-white border-none shadow-sm rounded-lg"
                         onClick={() => { setEditingAssessment(null); setIsModalOpen(true); }}
                     >
-                        <span>+</span> INITIALIZE NEW MISSION
+                        + New Assessment
                     </Button>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {assessments.map((a) => (
-                        <Card key={a._id} className="p-8 border-white/5 bg-[#0a0a0f]/60 backdrop-blur-xl group hover:border-cyan-500/30 transition-all duration-500 flex flex-col justify-between">
+                        <Card key={a._id} className="p-6 border border-line bg-white shadow-sm rounded-xl hover:border-line-strong transition-all flex flex-col justify-between">
                             <div>
-                                <div className="flex justify-between items-start mb-6">
-                                    <Badge variant={a.difficulty === 'beginner' ? 'success' : a.difficulty === 'intermediate' ? 'primary' : 'error'} className="uppercase text-[9px] font-black tracking-widest px-3 py-1 bg-opacity-10 border-opacity-20">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider border ${
+                                        a.difficulty === 'beginner' ? 'bg-ok-bg text-ok border-ok-line' :
+                                        a.difficulty === 'intermediate' ? 'bg-blue-tint text-navy border-info-line' :
+                                        'bg-danger-bg text-danger border-danger-line'
+                                    }`}>
                                         {a.difficulty}
-                                    </Badge>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openEditModal(a)} className="text-slate-500 hover:text-cyan-400">📝</button>
-                                        <button onClick={() => handleDelete(a._id)} className="text-slate-500 hover:text-rose-500">✕</button>
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => openEditModal(a)} className="text-slate hover:text-navy text-xs font-bold px-2 py-1 bg-mist rounded border border-line">Edit</button>
+                                        <button onClick={() => handleDelete(a._id)} className="text-danger hover:text-danger-line text-xs font-bold px-2 py-1 bg-danger-bg rounded border border-danger-line">Delete</button>
                                     </div>
                                 </div>
-                                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 group-hover:text-cyan-400 transition-colors">{a.title}</h3>
-                                <p className="text-sm text-slate-500 mb-6 line-clamp-2">{a.description}</p>
+                                <h3 className="text-lg font-bold text-navy mb-2">{a.title}</h3>
+                                <p className="text-xs text-slate mb-5 line-clamp-2">{a.description}</p>
 
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Time Limit</p>
-                                        <p className="text-xs font-black text-white">{a.duration} MINS</p>
+                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="bg-paper rounded-lg p-3 border border-line">
+                                        <p className="text-[10px] font-bold text-slate uppercase tracking-wider mb-0.5">Time Limit</p>
+                                        <p className="text-xs font-bold text-navy tabular-nums">{a.duration} Mins</p>
                                     </div>
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Fee</p>
-                                        <p className="text-xs font-black text-cyan-400">₹{a.price}</p>
+                                    <div className="bg-paper rounded-lg p-3 border border-line">
+                                        <p className="text-[10px] font-bold text-slate uppercase tracking-wider mb-0.5">Price</p>
+                                        <p className="text-xs font-bold text-navy tabular-nums">₹{a.price}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                            <div className="flex items-center justify-between pt-4 border-t border-line">
                                 <div className="flex items-center gap-2">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${a.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`}></span>
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{a.isActive ? 'ACTIVE' : 'OFFLINE'}</span>
+                                    <span className={`w-2 h-2 rounded-full ${a.isActive ? 'bg-ok' : 'bg-slate-soft'}`}></span>
+                                    <span className="text-xs font-bold text-slate uppercase tracking-wider">{a.isActive ? 'Active' : 'Offline'}</span>
                                 </div>
-                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{a.category?.name || 'Uncategorized'}</span>
+                                <Link href={`/admin/assessments/${a._id}/questions`} className="text-xs font-bold text-navy hover:underline">
+                                    Manage Questions →
+                                </Link>
                             </div>
                         </Card>
                     ))}
                 </div>
             </main>
 
-            {/* Modal - Could be a separate component but for speed putting here */}
+            {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#020205]/80 backdrop-blur-sm overflow-y-auto">
-                    <Card className="w-full max-w-2xl p-10 bg-[#0a0a0f] border-cyan-500/20 shadow-2xl shadow-cyan-500/10">
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
-                                {editingAssessment ? 'MODIFY' : 'INITIALIZE'} MISSION
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-navy/45 backdrop-blur-sm overflow-y-auto">
+                    <Card className="w-full max-w-2xl p-6 bg-white border border-line shadow-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-line">
+                            <h2 className="text-xl font-bold text-navy">
+                                {editingAssessment ? 'Edit Assessment' : 'New Assessment'}
                             </h2>
-                            <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white">✕</button>
+                            <button onClick={() => setIsModalOpen(false)} className="text-slate hover:text-navy text-lg font-bold">✕</button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Title</label>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Title</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Slug (URL)</label>
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Slug (URL)</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.slug}
                                         onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/ /g, '-') })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Description</label>
+                            <div>
+                                <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Description</label>
                                 <textarea
                                     required
                                     rows={3}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none resize-none"
+                                    className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none resize-none"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Category</label>
                                     <select
                                         required
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none cursor-pointer"
                                     >
-                                        <option value="" className="bg-[#0a0a0f]">SELECT</option>
-                                        {categories.map(c => <option key={c._id} value={c._id} className="bg-[#0a0a0f]">{c.name.toUpperCase()}</option>)}
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Level</label>
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Difficulty</label>
                                     <select
                                         value={formData.difficulty}
                                         onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none cursor-pointer"
                                     >
-                                        <option value="beginner" className="bg-[#0a0a0f]">BEGINNER</option>
-                                        <option value="intermediate" className="bg-[#0a0a0f]">INTERMEDIATE</option>
-                                        <option value="advanced" className="bg-[#0a0a0f]">ADVANCED</option>
+                                        <option value="beginner">Beginner</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="advanced">Advanced</option>
                                     </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Duration</label>
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Duration (mins)</label>
                                     <input
                                         type="number"
                                         value={formData.duration}
                                         onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Price</label>
+                                <div>
+                                    <label className="text-xs font-semibold text-slate uppercase tracking-wider mb-1 block">Price (₹)</label>
                                     <input
                                         type="number"
                                         value={formData.price}
                                         onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-cyan-500/50 outline-none"
+                                        className="w-full bg-white border border-line-strong rounded-lg px-3.5 py-2 text-sm text-ink focus:border-navy outline-none"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center pt-8">
-                                <div className="flex items-center gap-3">
+                            <div className="flex justify-between items-center pt-6 border-t border-line">
+                                <div className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
                                         checked={formData.isActive}
                                         onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                                         id="isActive"
-                                        className="w-4 h-4 bg-white/5 border-white/10 rounded outline-none accent-cyan-500"
+                                        className="w-4 h-4 rounded border-line-strong accent-navy"
                                     />
-                                    <label htmlFor="isActive" className="text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer">Live Deployment</label>
+                                    <label htmlFor="isActive" className="text-xs font-bold text-navy cursor-pointer">Live / Active</label>
                                 </div>
-                                <div className="flex gap-4">
-                                    <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)} className="text-slate-500 font-black tracking-widest">ABORT</Button>
-                                    <Button variant="primary" type="submit" className="px-8 py-3 bg-cyan-500 border-none font-black tracking-widest shadow-lg shadow-cyan-500/20">CONFIRM PARAMETERS</Button>
+                                <div className="flex gap-3">
+                                    <Button variant="outline" type="button" onClick={() => setIsModalOpen(false)} className="border-line text-slate hover:bg-mist text-xs">Cancel</Button>
+                                    <Button variant="primary" type="submit" className="px-6 py-2.5 bg-navy hover:bg-navy-2 text-white border-none text-xs font-bold">Save Assessment</Button>
                                 </div>
                             </div>
                         </form>

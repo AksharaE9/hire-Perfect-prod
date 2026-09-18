@@ -9,17 +9,17 @@ import Loading from '@/components/ui/Loading';
 import { checkAndClearExpiredSession } from '@/lib/sessionUtils';
 
 const LANGUAGES = [
-    { value: 'javascript', label: 'JavaScript', icon: '🟨' },
-    { value: 'typescript', label: 'TypeScript', icon: '🔷' },
-    { value: 'python', label: 'Python', icon: '🐍' },
-    { value: 'java', label: 'Java', icon: '☕' },
-    { value: 'cpp', label: 'C++', icon: '⚙️' },
+    { value: 'javascript', label: 'JavaScript', icon: 'JS' },
+    { value: 'typescript', label: 'TypeScript', icon: 'TS' },
+    { value: 'python', label: 'Python', icon: 'PY' },
+    { value: 'java', label: 'Java', icon: 'JAVA' },
+    { value: 'cpp', label: 'C++', icon: 'C++' },
 ];
 
 const DIFFICULTY_COLOR: Record<string, string> = {
-    easy: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    medium: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    hard: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    easy: 'text-ok bg-ok-bg border-ok-line',
+    medium: 'text-warn bg-warn-bg border-warn-line',
+    hard: 'text-danger bg-danger-bg border-danger-line',
 };
 
 export default function ChallengePage({ params }: { params: Promise<{ id: string }> }) {
@@ -50,7 +50,6 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
             const data = await res.json();
             if (data.success) {
                 setChallenge(data.challenge);
-                // Pre-fill starter code if available
                 if (data.challenge.starterCode?.[language]) {
                     setCode(data.challenge.starterCode[language]);
                 }
@@ -113,36 +112,32 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
 
     if (loading) return <Loading variant="spinner" fullScreen text="Loading Challenge..." />;
     if (!challenge) return (
-        <div className="min-h-screen bg-[#020205] flex items-center justify-center">
-            <p className="text-white">Challenge not found</p>
+        <div className="min-h-screen bg-paper flex items-center justify-center">
+            <p className="text-navy font-bold">Challenge not found</p>
         </div>
     );
 
     const diffClass = DIFFICULTY_COLOR[challenge.difficulty] || DIFFICULTY_COLOR.medium;
 
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid relative overflow-hidden">
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full" />
-            </div>
+        <div className="min-h-screen bg-paper text-ink">
             <Navbar />
 
-            <main className="container mx-auto px-6 py-24 lg:py-32 page-container relative z-10">
+            <main className="container mx-auto px-6 py-12 lg:py-16 page-container relative z-10">
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* Left: Challenge Description */}
                     <div className="space-y-6">
                         <div>
-                            <span className={`inline-block px-3 py-1 text-[10px] font-black uppercase tracking-widest border rounded-lg mb-4 ${diffClass}`}>
+                            <span className={`inline-block px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider border rounded-md mb-3 ${diffClass}`}>
                                 {challenge.difficulty}
                             </span>
-                            <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-tight mb-4">
+                            <h1 className="text-3xl font-black text-navy uppercase tracking-tight leading-tight mb-3">
                                 {challenge.title}
                             </h1>
                             {challenge.tags?.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-4">
+                                <div className="flex flex-wrap gap-1.5 mb-3">
                                     {challenge.tags.map((t: string) => (
-                                        <span key={t} className="px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span key={t} className="px-2 py-0.5 bg-mist border border-line rounded text-[11px] font-medium text-slate uppercase">
                                             {t}
                                         </span>
                                     ))}
@@ -150,44 +145,44 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                             )}
                         </div>
 
-                        <Card className="p-8 bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl">
-                            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <span className="w-2 h-4 bg-emerald-500 rounded-full" />
+                        <Card className="p-6 bg-white border border-line shadow-sm rounded-xl">
+                            <h2 className="text-xs font-bold text-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <span className="w-1.5 h-3.5 bg-navy rounded-full" />
                                 Problem Statement
                             </h2>
-                            <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">
+                            <p className="text-ink leading-relaxed text-sm whitespace-pre-wrap">
                                 {challenge.description}
                             </p>
                         </Card>
 
                         {challenge.constraints && (
-                            <Card className="p-8 bg-[#0a0a0f]/60 border-amber-500/10 backdrop-blur-xl">
-                                <h2 className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <span className="w-2 h-4 bg-amber-500 rounded-full" />
+                            <Card className="p-6 bg-white border border-line shadow-sm rounded-xl">
+                                <h2 className="text-xs font-bold text-warn uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <span className="w-1.5 h-3.5 bg-warn rounded-full" />
                                     Constraints
                                 </h2>
-                                <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-wrap font-mono text-xs">
+                                <p className="text-code-ink bg-code-bg p-3 rounded-lg leading-relaxed text-xs whitespace-pre-wrap font-mono border border-line">
                                     {challenge.constraints}
                                 </p>
                             </Card>
                         )}
 
                         {challenge.examples?.length > 0 && (
-                            <Card className="p-8 bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl">
-                                <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <span className="w-2 h-4 bg-cyan-500 rounded-full" />
-                                    Examples
+                            <Card className="p-6 bg-white border border-line shadow-sm rounded-xl">
+                                <h2 className="text-xs font-bold text-navy uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <span className="w-1.5 h-3.5 bg-navy rounded-full" />
+                                    Test Cases & Examples
                                 </h2>
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     {challenge.examples.map((ex: any, i: number) => (
-                                        <div key={i} className="space-y-3">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Example {i + 1}</p>
-                                            <div className="bg-[#020205] rounded-xl p-4 border border-white/5 font-mono text-sm">
-                                                <p className="text-slate-400">Input: <span className="text-cyan-400">{ex.input}</span></p>
-                                                <p className="text-slate-400 mt-1">Output: <span className="text-emerald-400">{ex.output}</span></p>
+                                        <div key={i} className="space-y-2">
+                                            <p className="text-[11px] font-bold text-slate uppercase">Example {i + 1}</p>
+                                            <div className="bg-paper rounded-lg p-3.5 border border-line font-mono text-xs">
+                                                <p className="text-slate">Input: <span className="text-ink font-semibold">{ex.input}</span></p>
+                                                <p className="text-slate mt-1">Output: <span className="text-ok font-semibold">{ex.output}</span></p>
                                             </div>
                                             {ex.explanation && (
-                                                <p className="text-xs text-slate-500 italic">{ex.explanation}</p>
+                                                <p className="text-xs text-slate italic">{ex.explanation}</p>
                                             )}
                                         </div>
                                     ))}
@@ -197,20 +192,20 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
 
                         {/* Previous submissions */}
                         {existingSubmissions.length > 0 && (
-                            <Card className="p-8 bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl">
-                                <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">
+                            <Card className="p-6 bg-white border border-line shadow-sm rounded-xl">
+                                <h2 className="text-xs font-bold text-navy uppercase tracking-wider mb-4">
                                     Your Submissions ({existingSubmissions.length})
                                 </h2>
-                                <div className="space-y-3">
+                                <div className="space-y-2.5">
                                     {existingSubmissions.map((s: any) => (
-                                        <div key={s._id} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                                        <div key={s._id} className="flex items-center justify-between p-3 bg-paper rounded-lg border border-line">
                                             <div>
-                                                <span className="text-[9px] font-black text-white uppercase tracking-widest">{s.language}</span>
-                                                <p className="text-[9px] text-slate-500 mt-0.5">{new Date(s.createdAt).toLocaleDateString()}</p>
+                                                <span className="text-xs font-bold text-navy uppercase">{s.language}</span>
+                                                <p className="text-[11px] text-slate mt-0.5">{new Date(s.createdAt).toLocaleDateString()}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                {s.score !== null && (
-                                                    <span className="text-sm font-black text-cyan-400">{s.score}/100</span>
+                                                {s.score !== null && s.score !== undefined && (
+                                                    <span className="text-xs font-bold text-ok tabular-nums">Score: {s.score}/100</span>
                                                 )}
                                                 <StatusBadge status={s.status} />
                                             </div>
@@ -224,19 +219,19 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                     {/* Right: Code Submission */}
                     <div className="space-y-6">
                         {submitted ? (
-                            <Card className="p-12 text-center bg-[#0a0a0f]/60 border-emerald-500/20 backdrop-blur-xl">
-                                <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-4xl mx-auto mb-6">
-                                    ✅
+                            <Card className="p-10 text-center bg-white border border-ok-line shadow-sm rounded-xl">
+                                <div className="w-14 h-14 rounded-full bg-ok-bg border border-ok-line flex items-center justify-center text-2xl mx-auto mb-4 text-ok">
+                                    ✓
                                 </div>
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-4">
-                                    Solution Submitted!
+                                <h2 className="text-xl font-bold text-navy mb-2">
+                                    Solution Submitted Successfully!
                                 </h2>
-                                <p className="text-slate-400 mb-8">Your solution is being reviewed. You'll receive feedback soon.</p>
-                                <div className="flex gap-4 justify-center">
-                                    <Button variant="outline" className="border-white/10 text-white hover:border-emerald-500/40" onClick={() => setSubmitted(false)}>
+                                <p className="text-slate text-sm mb-6">Your code solution is under evaluation. Check back soon for audit review.</p>
+                                <div className="flex gap-3 justify-center">
+                                    <Button variant="outline" className="border-line text-slate hover:bg-mist text-xs" onClick={() => setSubmitted(false)}>
                                         Submit Another
                                     </Button>
-                                    <Button variant="primary" className="bg-emerald-500 hover:bg-emerald-400 border-none" onClick={() => router.push('/coding')}>
+                                    <Button variant="primary" className="bg-navy hover:bg-navy-2 text-white border-none text-xs" onClick={() => router.push('/coding')}>
                                         More Challenges
                                     </Button>
                                 </div>
@@ -244,16 +239,16 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                         ) : (
                             <>
                                 {/* Language Selector */}
-                                <Card className="p-6 bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl">
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Select Language</p>
+                                <Card className="p-5 bg-white border border-line shadow-sm rounded-xl">
+                                    <p className="text-xs font-bold text-navy uppercase tracking-wider mb-3">Select Language</p>
                                     <div className="flex flex-wrap gap-2">
                                         {LANGUAGES.map((lang) => (
                                             <button
                                                 key={lang.value}
                                                 onClick={() => handleLanguageChange(lang.value)}
-                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${language === lang.value
-                                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                                                    : 'bg-white/[0.02] border-white/5 text-slate-500 hover:border-white/20 hover:text-white'
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${language === lang.value
+                                                    ? 'bg-blue-tint border-info-line text-navy font-bold'
+                                                    : 'bg-paper border-line text-slate hover:text-navy hover:bg-mist'
                                                     }`}
                                             >
                                                 {lang.icon} {lang.label}
@@ -263,19 +258,12 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                                 </Card>
 
                                 {/* Code Editor */}
-                                <Card className="bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl overflow-hidden">
-                                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex gap-1.5">
-                                                <div className="w-3 h-3 rounded-full bg-rose-500/50" />
-                                                <div className="w-3 h-3 rounded-full bg-amber-500/50" />
-                                                <div className="w-3 h-3 rounded-full bg-emerald-500/50" />
-                                            </div>
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                                solution.{language === 'javascript' ? 'js' : language === 'typescript' ? 'ts' : language === 'python' ? 'py' : language === 'java' ? 'java' : 'cpp'}
-                                            </span>
-                                        </div>
-                                        <span className="text-[10px] font-black text-slate-600 uppercase">
+                                <Card className="bg-white border border-line shadow-sm rounded-xl overflow-hidden">
+                                    <div className="flex items-center justify-between px-5 py-3 border-b border-line bg-table-head-bg">
+                                        <span className="text-xs font-bold text-navy uppercase tracking-wider">
+                                            solution.{language === 'javascript' ? 'js' : language === 'typescript' ? 'ts' : language === 'python' ? 'py' : language === 'java' ? 'java' : 'cpp'}
+                                        </span>
+                                        <span className="text-[11px] font-semibold text-slate">
                                             {code.split('\n').length} lines
                                         </span>
                                     </div>
@@ -283,47 +271,44 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
                                         value={code}
                                         onChange={(e) => setCode(e.target.value)}
                                         placeholder="// Write your solution here..."
-                                        className="w-full bg-transparent text-slate-200 font-mono text-sm p-6 outline-none resize-none"
-                                        style={{ minHeight: '320px', lineHeight: '1.7' }}
+                                        className="w-full bg-code-bg text-code-ink font-mono text-xs p-5 outline-none resize-none"
+                                        style={{ minHeight: '300px', lineHeight: '1.7' }}
                                         spellCheck={false}
                                     />
                                 </Card>
 
                                 {/* Explanation */}
-                                <Card className="bg-[#0a0a0f]/60 border-white/5 backdrop-blur-xl overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
-                                        <span className="w-2 h-4 bg-purple-500 rounded-full" />
-                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                            Explain Your Approach <span className="text-rose-500">*</span>
+                                <Card className="bg-white border border-line shadow-sm rounded-xl overflow-hidden">
+                                    <div className="px-5 py-3 border-b border-line flex items-center justify-between">
+                                        <p className="text-xs font-bold text-navy uppercase tracking-wider">
+                                            Algorithm Explanation <span className="text-danger">*</span>
+                                        </p>
+                                        <p className={`text-[10px] font-semibold ${explanation.length < 10 ? 'text-slate-soft' : 'text-ok'}`}>
+                                            {explanation.length} / min. 10 chars
                                         </p>
                                     </div>
                                     <textarea
                                         value={explanation}
                                         onChange={(e) => setExplanation(e.target.value)}
-                                        placeholder="Describe your algorithm, time complexity, why you chose this approach..."
-                                        className="w-full bg-transparent text-slate-300 text-sm p-6 outline-none resize-none"
-                                        style={{ minHeight: '140px', lineHeight: '1.7' }}
+                                        placeholder="Describe your algorithm, time complexity, and edge cases handled..."
+                                        className="w-full bg-white text-ink text-xs p-4 outline-none resize-none"
+                                        style={{ minHeight: '110px', lineHeight: '1.6' }}
                                     />
-                                    <div className="px-6 pb-4">
-                                        <p className={`text-[10px] font-black uppercase tracking-widest ${explanation.length < 10 ? 'text-slate-600' : 'text-emerald-500'}`}>
-                                            {explanation.length} / min. 10 chars
-                                        </p>
-                                    </div>
                                 </Card>
 
                                 {error && (
-                                    <div className="px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-widest">
+                                    <div className="px-4 py-2.5 rounded-lg bg-danger-bg border border-danger-line text-danger text-xs font-bold">
                                         ⚠ {error}
                                     </div>
                                 )}
 
                                 <Button
                                     variant="primary"
-                                    className="w-full py-5 text-sm font-black uppercase tracking-widest bg-emerald-500 hover:bg-emerald-400 border-none shadow-xl shadow-emerald-500/20"
+                                    className="w-full py-3 text-xs font-bold uppercase tracking-wider bg-navy hover:bg-navy-2 text-white border-none shadow-sm rounded-lg"
                                     onClick={handleSubmit}
                                     disabled={submitting}
                                 >
-                                    {submitting ? '⏳ Submitting...' : '🚀 Submit Solution'}
+                                    {submitting ? 'Submitting Solution...' : 'Submit Solution'}
                                 </Button>
                             </>
                         )}
@@ -336,15 +321,15 @@ export default function ChallengePage({ params }: { params: Promise<{ id: string
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, string> = {
-        pending: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-        under_review: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-        approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-        needs_improvement: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+        pending: 'bg-mist text-slate border-line',
+        under_review: 'bg-warn-bg text-warn border-warn-line',
+        approved: 'bg-ok-bg text-ok border-ok-line',
+        rejected: 'bg-danger-bg text-danger border-danger-line',
+        needs_improvement: 'bg-warn-bg text-warn border-warn-line',
     };
     return (
-        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${map[status] || map.pending}`}>
-            {status.replace('_', ' ')}
+        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${map[status] || map.pending}`}>
+            {status ? status.replace('_', ' ') : 'pending'}
         </span>
     );
 }

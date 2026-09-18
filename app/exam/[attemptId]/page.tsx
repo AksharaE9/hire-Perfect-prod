@@ -888,24 +888,28 @@ export default function ExamPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#020205] bg-grid text-cyan-50 grid place-items-center">
-                <p className="text-sm font-bold uppercase tracking-[0.3em] text-cyan-400/70">Initializing Assessment Grid...</p>
+            <div className="min-h-screen bg-paper flex items-center justify-center">
+                <p className="text-sm font-medium text-graphite animate-pulse">
+                    Preparing examination environment...
+                </p>
             </div>
         );
     }
 
     if (terminated) {
         return (
-            <div className="min-h-screen bg-[#020205] bg-grid text-cyan-50 grid place-items-center p-6">
-                <div className="glass max-w-2xl rounded-3xl border-rose-500/30 p-10 text-center bg-rose-950/30">
-                    <p className="text-[11px] font-black uppercase tracking-[0.35em] text-rose-400 mb-4">Session Terminated</p>
-                    <h1 className="text-3xl font-black uppercase tracking-tight text-white mb-5">Violation Threshold Reached</h1>
-                    <p className="text-sm text-rose-200/80 mb-8">
-                        Your assessment was auto-terminated after {EXAM_CONFIG.MAX_VIOLATIONS} violations.
+            <div className="min-h-screen bg-paper flex items-center justify-center p-6">
+                <div className="bg-sheet max-w-lg w-full rounded-panel border border-flagged/30 p-8 sm:p-10 text-center shadow-floating">
+                    <span className="text-xs font-bold uppercase tracking-wider text-flagged bg-flagged-soft px-3 py-1 rounded-chip mb-4 inline-block">
+                        Attempt Terminated
+                    </span>
+                    <h1 className="text-2xl font-bold text-ink mb-3">Violation Limit Reached</h1>
+                    <p className="text-sm text-graphite mb-8 leading-relaxed">
+                        This assessment attempt was automatically concluded after reaching the maximum threshold of {EXAM_CONFIG.MAX_VIOLATIONS} proctoring violations.
                     </p>
                     <button
                         onClick={() => router.push('/dashboard')}
-                        className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black uppercase tracking-[0.2em] text-xs"
+                        className="w-full py-3 px-6 rounded-btn bg-navy hover:bg-navy-2 text-white font-medium text-sm transition-colors"
                     >
                         Return to Dashboard
                     </button>
@@ -916,154 +920,222 @@ export default function ExamPage() {
 
     if (error || !activeQuestion) {
         return (
-            <div className="min-h-screen bg-[#020205] bg-grid text-cyan-50 grid place-items-center p-6">
-                <div className="glass max-w-2xl rounded-3xl p-10 text-center">
-                    <p className="text-rose-400 text-sm font-bold uppercase tracking-[0.2em]">{error || 'No questions found for this attempt.'}</p>
+            <div className="min-h-screen bg-paper flex items-center justify-center p-6">
+                <div className="bg-sheet max-w-lg w-full rounded-panel border border-rule p-8 text-center shadow-floating">
+                    <p className="text-flagged text-sm font-medium">{error || 'No questions found for this attempt.'}</p>
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="mt-6 py-2.5 px-5 rounded-btn bg-sheet border border-rule text-ink hover:bg-paper text-xs font-medium"
+                    >
+                        Return to Dashboard
+                    </button>
                 </div>
             </div>
         );
     }
 
+    const timerIsWarning = timeLeft < 300 && timeLeft >= 60;
+    const timerIsCritical = timeLeft < 60;
+
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid selection:bg-cyan-500/30 selection:text-white text-cyan-50/90">
+        <div className="min-h-screen bg-paper text-ink font-sans flex flex-col">
+            {/* Warning Toast Banner */}
             {warning.show && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] glass border-rose-500/30 bg-rose-950/60 px-6 py-3 rounded-2xl">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-rose-300">{warning.message}</p>
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] bg-sheet border-2 border-review rounded-card px-6 py-3 shadow-floating flex items-center gap-3 animate-fadeIn">
+                    <span className="w-2 h-2 rounded-full bg-review animate-ping shrink-0" />
+                    <p className="text-xs font-semibold text-ink">{warning.message}</p>
                 </div>
             )}
 
-            <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5 bg-black/80">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+            {/* Fixed Distraction-Free Top Bar */}
+            <header className="sticky top-0 z-40 bg-sheet/95 backdrop-blur-md border-b border-rule shadow-subtle">
+                <div className="max-w-container mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-500/40">Assessment Mode</p>
-                        <p className="text-xs font-black uppercase tracking-widest text-cyan-100">Question {currentQuestion + 1}/{questions.length}</p>
+                        <span className="text-[11px] font-semibold text-graphite uppercase tracking-wider block">
+                            Question {currentQuestion + 1} of {questions.length}
+                        </span>
                     </div>
-                    <div className="flex items-center gap-8">
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-500/40">Time Remaining</p>
-                            <p className={`text-2xl font-black ${timeLeft < 300 ? 'text-rose-400 animate-pulse' : 'text-cyan-100'}`}>{formatTime(timeLeft)}</p>
+
+                    <div className="flex items-center gap-6">
+                        {/* Tabular Timer with Accessible Announcement */}
+                        <div className="flex items-center gap-2">
+                            <span
+                                className={`text-xs font-medium ${
+                                    timerIsCritical
+                                        ? 'text-flagged'
+                                        : timerIsWarning
+                                        ? 'text-review'
+                                        : 'text-graphite'
+                                }`}
+                            >
+                                Time remaining:
+                            </span>
+                            <span
+                                className={`text-base font-bold tabular-nums font-sans ${
+                                    timerIsCritical
+                                        ? 'text-flagged animate-pulse'
+                                        : timerIsWarning
+                                        ? 'text-review'
+                                        : 'text-ink'
+                                }`}
+                                aria-live={timeLeft === 300 || timeLeft === 60 ? 'polite' : 'off'}
+                            >
+                                {formatTime(timeLeft)}
+                            </span>
                         </div>
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-500/40">Violations</p>
-                            <p className={`text-xl font-black ${violationCount >= 3 ? 'text-rose-400' : 'text-cyan-300'}`}>
-                                {violationCount}/{EXAM_CONFIG.MAX_VIOLATIONS}
-                            </p>
+
+                        {/* Violation Indicator */}
+                        <div className="flex items-center gap-2 pl-4 border-l border-rule">
+                            <span className="text-xs text-graphite font-medium">Flags:</span>
+                            <span
+                                className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-chip border ${
+                                    violationCount >= 3
+                                        ? 'bg-flagged-soft text-flagged border-flagged/30'
+                                        : violationCount > 0
+                                        ? 'bg-review-soft text-review border-review/30'
+                                        : 'bg-paper text-graphite border-rule'
+                                }`}
+                            >
+                                {violationCount} / {EXAM_CONFIG.MAX_VIOLATIONS}
+                            </span>
                         </div>
                     </div>
                 </div>
+
+                {/* Question Progress Line */}
+                <div className="w-full h-1 bg-paper overflow-hidden">
+                    <div
+                        className="h-full bg-signal transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
             </header>
 
-            <main className="pt-24 pb-24 px-6 page-container">
-                <div className="container mx-auto grid lg:grid-cols-[1fr_320px] gap-8">
-                    <section className="glass rounded-[2rem] border-white/10 p-8 md:p-10 bg-black/50">
-                        <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden mb-10">
-                            <div className="h-full bg-cyan-500 shadow-[0_0_16px_rgba(0,242,255,0.6)] transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            {/* Exam Body */}
+            <main className="flex-1 max-w-container mx-auto px-5 sm:px-8 py-8 w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Main Question Panel */}
+                    <section className="lg:col-span-8 bg-sheet border border-rule rounded-panel p-6 sm:p-10 shadow-subtle">
+                        <div className="mb-6">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-signal block mb-2">
+                                Multiple Choice Question
+                            </span>
+                            <h1 className="text-xl sm:text-2xl font-bold text-ink leading-snug">
+                                {activeQuestion.question}
+                            </h1>
                         </div>
 
-                        <h1 className="text-3xl md:text-4xl font-black text-cyan-50 leading-tight tracking-tight mb-8 uppercase">
-                            {activeQuestion.question}
-                        </h1>
-
-                        <div className="grid gap-4">
+                        {/* OMR Options List */}
+                        <div className="space-y-3 mb-10">
                             {(activeQuestion.displayOptions || []).map((option, idx) => {
                                 const isSelected = answers[activeQuestion._id] === option.originalIndex;
+                                const letter = String.fromCharCode(65 + idx);
                                 return (
                                     <button
                                         key={idx}
+                                        type="button"
                                         onClick={() => handleAnswerChange(activeQuestion._id, option.originalIndex)}
-                                        className={`text-left rounded-2xl p-5 border transition-all duration-300 ${isSelected
-                                            ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-50 shadow-[0_0_30px_rgba(0,242,255,0.08)]'
-                                            : 'bg-white/[0.02] border-white/[0.06] text-cyan-100/80 hover:border-cyan-500/30'
-                                            }`}
+                                        className={`w-full text-left rounded-card p-4 sm:p-5 border transition-all duration-150 flex items-center gap-4 cursor-pointer focus-visible:outline-2 focus-visible:outline-signal ${
+                                            isSelected
+                                                ? 'bg-signal-soft border-signal text-ink shadow-subtle'
+                                                : 'bg-sheet border-rule hover:border-rule-strong text-ink hover:bg-paper'
+                                        }`}
                                     >
-                                        <span className="font-black text-cyan-400 mr-2">{String.fromCharCode(65 + idx)}.</span>
-                                        {option.text}
+                                        <div
+                                            className={`w-8 h-8 rounded-full border-2 font-bold text-xs flex items-center justify-center shrink-0 transition-colors ${
+                                                isSelected
+                                                    ? 'bg-signal text-white border-signal'
+                                                    : 'bg-sheet text-graphite border-rule-strong'
+                                            }`}
+                                        >
+                                            {letter}
+                                        </div>
+                                        <span className="text-sm font-medium leading-relaxed">
+                                            {option.text}
+                                        </span>
                                     </button>
                                 );
                             })}
                         </div>
 
-                        <div className="mt-10 flex items-center justify-between">
+                        {/* Pagination & Submit Bar */}
+                        <div className="flex items-center justify-between pt-6 border-t border-rule">
                             <button
+                                type="button"
                                 onClick={() => setCurrentQuestion((prev) => Math.max(0, prev - 1))}
                                 disabled={currentQuestion === 0}
-                                className="px-6 py-3 rounded-xl border border-white/10 text-xs font-black uppercase tracking-[0.2em] text-cyan-200/70 hover:text-cyan-300 hover:border-cyan-500/40 disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="px-4 py-2.5 rounded-btn border border-rule text-xs font-semibold text-graphite hover:text-ink hover:bg-paper disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
                                 Previous
                             </button>
 
                             <div className="flex items-center gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => void submitAssessment(false)}
                                     disabled={isSubmitting}
-                                    className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black uppercase tracking-[0.2em] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-5 py-2.5 rounded-btn bg-paper hover:bg-sheet border border-rule-strong text-xs font-semibold text-graphite hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                                    {isSubmitting ? 'Submitting…' : 'Submit Exam'}
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setCurrentQuestion((prev) => Math.min(questions.length - 1, prev + 1))}
                                     disabled={currentQuestion >= questions.length - 1}
-                                    className="px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-black uppercase tracking-[0.2em] text-black disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="px-5 py-2.5 rounded-btn bg-navy hover:bg-navy-2 text-xs font-semibold text-white shadow-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next
+                                    Next Question
                                 </button>
                             </div>
                         </div>
                     </section>
 
-                    <aside className="space-y-4">
-                        <div className="glass rounded-2xl border-white/10 p-4 bg-black/60">
+                    {/* Right Rail: Camera Sentinel & Proctoring Status */}
+                    <aside className="lg:col-span-4 space-y-4">
+                        <div className="bg-sheet rounded-card border border-rule p-4 shadow-subtle">
                             <div className="flex items-center justify-between mb-3">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Live Camera</p>
-                                <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${cameraStatus === 'ready' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                    {cameraStatus}
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-clean animate-pulse" />
+                                    <span className="text-xs font-bold text-ink">Proctoring Active</span>
+                                </div>
+                                <span className="text-[11px] text-graphite font-mono tabular-nums">
+                                    {cameraStatus === 'ready' ? 'Connected' : 'Connecting'}
                                 </span>
                             </div>
-                            <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black">
-                                <video ref={videoRef} autoPlay muted playsInline className="w-full aspect-[4/3] object-cover" />
-                                <div className="absolute top-2 left-2 px-2 py-1 bg-black/50 rounded border border-white/10">
-                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                                        {proctoringReady ? 'AI Monitor On' : 'AI Monitor Loading'}
-                                    </p>
+
+                            <div className="relative rounded-card overflow-hidden bg-paper border border-rule aspect-[4/3] mb-3">
+                                <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                                <div className="absolute top-2 left-2 px-2 py-0.5 bg-ink/75 text-white rounded-chip backdrop-blur-sm">
+                                    <span className="text-[10px] font-medium">
+                                        {proctoringReady ? 'GuardEye Vision On' : 'Initializing Vision'}
+                                    </span>
                                 </div>
                             </div>
-                            <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
-                                <div className="rounded border border-white/10 bg-black/40 px-2 py-1">
-                                    <p className="text-cyan-500/60 uppercase">AI FPS</p>
-                                    <p className="font-black text-cyan-200">{aiFps}</p>
-                                </div>
-                                <div className="rounded border border-white/10 bg-black/40 px-2 py-1">
-                                    <p className="text-cyan-500/60 uppercase">Faces</p>
-                                    <p className="font-black text-cyan-200">{aiLastFaceCount}</p>
-                                </div>
-                                <div className="rounded border border-white/10 bg-black/40 px-2 py-1">
-                                    <p className="text-cyan-500/60 uppercase">Engine</p>
-                                    <p className={`font-black ${proctoringReady ? 'text-emerald-300' : 'text-amber-300'}`}>
-                                        {proctoringReady ? 'RUN' : 'INIT'}
-                                    </p>
-                                </div>
-                            </div>
+
                             {cameraError && (
-                                <p className="mt-3 text-[11px] font-semibold text-rose-300">{cameraError}</p>
+                                <p className="text-xs text-flagged font-medium mt-2">{cameraError}</p>
                             )}
+
                             {cameraStatus !== 'ready' && (
                                 <button
+                                    type="button"
                                     onClick={() => void initCamera()}
-                                    className="mt-4 w-full px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-black uppercase tracking-[0.2em]"
+                                    className="mt-2 w-full py-2 rounded-chip bg-sheet border border-rule text-xs font-medium text-ink hover:bg-paper"
                                 >
                                     Retry Camera
                                 </button>
                             )}
                         </div>
 
-                        <div className="glass rounded-2xl border-white/10 p-4 bg-black/60">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 mb-3">Monitoring Rules</p>
-                            <ul className="text-xs text-cyan-100/70 space-y-2 leading-relaxed">
-                                <li>Face must remain visible at all times.</li>
-                                <li>Looking away and head movement are monitored.</li>
-                                <li>Multiple faces trigger violations.</li>
-                                <li>Tab switch and screen minimize are violations.</li>
-                                <li>Auto-terminate at {EXAM_CONFIG.MAX_VIOLATIONS} violations.</li>
+                        <div className="bg-sheet rounded-card border border-rule p-4 shadow-subtle">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">
+                                Examination Rules
+                            </h3>
+                            <ul className="text-xs text-graphite space-y-2 leading-relaxed">
+                                <li>• Keep your face visible and centered.</li>
+                                <li>• Do not exit full-screen mode or switch tabs.</li>
+                                <li>• Copy and paste operations are restricted.</li>
+                                <li>• Maximum {EXAM_CONFIG.MAX_VIOLATIONS} flags allowed before auto-submit.</li>
                             </ul>
                         </div>
                     </aside>

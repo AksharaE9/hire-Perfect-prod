@@ -1,59 +1,43 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IAuditLog extends Document {
-    action: string;
-    description: string;
-    actor: {
-        id: string;
-        name: string;
-        email: string;
-        role: string;
-    };
-    metadata?: any;
-    severity: 'info' | 'warning' | 'critical';
-    timestamp: Date;
+  _id: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
+  action: string;
+  attemptId?: mongoose.Types.ObjectId;
+  reportId?: mongoose.Types.ObjectId;
+  description?: string;
+  actor?: { id: string; name: string; email: string; role: string };
+  severity?: 'info' | 'warning' | 'critical';
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp?: Date;
+  createdAt: Date;
 }
 
 const AuditLogSchema = new Schema<IAuditLog>(
-    {
-        action: {
-            type: String,
-            required: [true, 'Action is required'],
-            index: true,
-        },
-        description: {
-            type: String,
-            required: [true, 'Description is required'],
-        },
-        actor: {
-            id: { type: String, required: true },
-            name: { type: String, required: true },
-            email: { type: String, required: true },
-            role: { type: String, required: true },
-        },
-        metadata: {
-            type: Schema.Types.Mixed,
-        },
-        severity: {
-            type: String,
-            enum: ['info', 'warning', 'critical'],
-            default: 'info',
-            index: true,
-        },
-        timestamp: {
-            type: Date,
-            default: Date.now,
-            index: true,
-        },
+  {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+    action: {
+      type: String,
+      required: true,
+      index: true,
     },
-    {
-        timestamps: true,
-    }
+    attemptId: { type: Schema.Types.ObjectId, ref: 'Attempt', index: true },
+    reportId: { type: Schema.Types.ObjectId, ref: 'AttemptReport' },
+    description: { type: String },
+    actor: { type: Schema.Types.Mixed },
+    severity: { type: String, enum: ['info', 'warning', 'critical'], default: 'info' },
+    metadata: { type: Schema.Types.Mixed },
+    ipAddress: { type: String },
+    userAgent: { type: String },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-// TTL index to automatically remove logs older than 30 days
-AuditLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 2592000 });
-
-const AuditLog: Model<IAuditLog> = mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
+const AuditLog: Model<IAuditLog> =
+  mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
 
 export default AuditLog;

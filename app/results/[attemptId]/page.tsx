@@ -4,244 +4,608 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Loading from '@/components/ui/Loading';
+import StatusChip from '@/components/ui/StatusChip';
 import CertificateModal from '@/components/ui/CertificateModal';
 import { checkAndClearExpiredSession } from '@/lib/sessionUtils';
+import { formatDate } from '@/src/lib/formatters';
+import { AttemptReport } from '@/src/server/reporting/types';
+import {
+  Award,
+  CheckCircle,
+  AlertTriangle,
+  ArrowLeft,
+  Printer,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Clock,
+  BookOpen,
+  ShieldCheck,
+  TrendingUp,
+  ExternalLink,
+  Target,
+  FileText,
+} from 'lucide-react';
 
-export default function ResultsPage({ params: paramsPromise }: { params: Promise<{ attemptId: string }> }) {
-    const params = React.use(paramsPromise);
-    const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [attempt, setAttempt] = useState<any>(null);
-    const [violations, setViolations] = useState<any[]>([]);
-    const [showCertificate, setShowCertificate] = useState(false);
+export default function ResultsPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ attemptId: string }>;
+}) {
+  const params = React.use(paramsPromise);
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<AttemptReport | null>(null);
+  const [showMethodology, setShowMethodology] = useState(true);
+  const [showCertificate, setShowCertificate] = useState(false);
 
-    useEffect(() => {
-        if (!checkAndClearExpiredSession(router)) return;
-        loadResult();
-    }, []);
+  useEffect(() => {
+    if (!checkAndClearExpiredSession(router)) return;
+    loadReport();
+  }, [params.attemptId]);
 
-    const loadResult = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/attempts/${params.attemptId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await res.json();
+  const loadReport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/v1/attempts/${params.attemptId}/report`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
 
-            if (data.success) {
-                setAttempt(data.attempt);
-                if (data.attempt.violations) {
-                    setViolations(data.attempt.violations);
-                }
-            } else {
-                router.push('/dashboard');
-            }
-        } catch (error) {
-            console.error('Failed to load results:', error);
-        } finally {
-            setLoading(false);
+      if (data.success && data.report) {
+        setReport(data.report);
+      } else {
+        // Fallback to basic load if v1 endpoint fails
+        const legacyRes = await fetch(`/api/attempts/${params.attemptId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const legacyData = await legacyRes.json();
+        if (legacyData.success) {
+          // Trigger automatic report generation
+          const retryRes = await fetch(`/api/v1/attempts/${params.attemptId}/report`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const retryData = await retryRes.json();
+          if (retryData.success) {
+            setReport(retryData.report);
+          }
+        } else {
+          router.push('/dashboard');
         }
-    };
+      }
+    } catch (error) {
+      console.error('Failed to load assessment report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (loading) return <Loading variant="spinner" fullScreen text="Synthesizing Report..." />;
-    if (!attempt) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Record Not Found</div>;
+  if (loading) {
+    return <Loading variant="spinner" fullScreen text="Compiling detailed assessment report..." />;
+  }
 
-    const percentage = attempt.percentage || 0;
-    const isPassing = percentage >= 60;
-
+  if (!report) {
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid selection:bg-cyan-500/30 selection:text-white overflow-x-hidden text-cyan-50/80 font-sans">
-            <Navbar />
-
-            <main className="container mx-auto px-6 py-24 lg:py-32 page-container relative">
-                {/* Floating Orbs */}
-                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-600/5 blur-[120px] rounded-full pointer-events-none"></div>
-
-                {/* Achievement Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-12 relative z-10">
-                    <div>
-                        <div className="inline-block px-3 py-1 bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg mb-4 border border-cyan-500/20">
-                            Assessment Terminal Complete
-                        </div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.8]">
-                            VALIDATION <br /><span className="text-cyan-500">SUMMARY.</span>
-                        </h1>
-                        <p className="text-lg text-cyan-500/50 font-medium mt-6 max-w-lg">
-                            Performance synthesis for <span className="text-cyan-50 font-bold">{attempt.assessment?.title}</span>. Detailed analytics and proctoring metrics below.
-                        </p>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <Link href="/dashboard">
-                            <Button variant="outline" className="px-8 py-4 uppercase tracking-widest text-[10px] font-black bg-transparent border-white/10 text-white hover:border-cyan-500/30">Terminal Exit</Button>
-                        </Link>
-                        <Button variant="primary" className="px-10 py-4 uppercase tracking-[0.2em] text-[10px] font-black shadow-[0_0_30px_rgba(0,242,255,0.2)]" onClick={() => window.print()}>Export PDF</Button>
-                    </div>
-                </div>
-
-                <div className="grid lg:grid-cols-3 gap-12 relative z-10">
-                    {/* Performance Core */}
-                    <div className="lg:col-span-2 space-y-12">
-                        {/* Status Card */}
-                        <Card className="p-1 border-white/5 bg-slate-900/40 backdrop-blur-md shadow-2xl overflow-visible relative group">
-                            <div className={`absolute -inset-1 blur-2xl opacity-10 transition-opacity group-hover:opacity-20 ${isPassing ? 'bg-cyan-500' : 'bg-rose-500'}`}></div>
-                            <div className="bg-transparent rounded-[14px] p-12 text-center relative z-10 overflow-hidden">
-                                {/* Decorative Background Elements */}
-                                <div className={`absolute top-0 right-0 w-64 h-64 rounded-full translate-x-24 -translate-y-24 opacity-[0.03] ${isPassing ? 'bg-cyan-500' : 'bg-rose-500'}`}></div>
-
-                                <div className="relative z-20 mb-10 flex flex-col items-center">
-                                    <div className={`w-36 h-36 rounded-[2.5rem] flex items-center justify-center mb-8 rotate-3 shadow-2xl border ${isPassing ? 'bg-cyan-500 border-cyan-400 shadow-[0_0_40px_rgba(0,242,255,0.3)]' : 'bg-rose-500 border-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.3)]'}`}>
-                                        <span className="text-black text-5xl font-black">{Math.round(percentage)}%</span>
-                                    </div>
-                                    <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">
-                                        {isPassing ? 'PROTOCOL ACHIEVED' : 'PROTOCOL SUBSTANDARD'}
-                                    </h2>
-                                    <p className="text-cyan-500/50 font-medium max-w-sm mx-auto leading-relaxed">
-                                        {isPassing
-                                            ? 'The operative has successfully cleared the validation threshold and is now eligible for certification.'
-                                            : 'The internal validation threshold was not met. Re-training and subsequent evaluation is recommended.'}
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-1 pt-12 border-t border-white/5">
-                                    <div className="p-6 text-center">
-                                        <p className="text-[10px] font-black text-cyan-500/40 uppercase tracking-widest mb-1">Accuracy</p>
-                                        <p className="text-2xl font-black text-white">{attempt.correctAnswers}/{attempt.totalQuestions}</p>
-                                    </div>
-                                    <div className="p-6 border-x border-white/5 text-center">
-                                        <p className="text-[10px] font-black text-cyan-500/40 uppercase tracking-widest mb-1">Duration</p>
-                                        <p className="text-2xl font-black text-white">{Math.floor(attempt.timeSpent / 60)}m</p>
-                                    </div>
-                                    <div className="p-6 text-center">
-                                        <p className="text-[10px] font-black text-cyan-500/40 uppercase tracking-widest mb-1">Rank</p>
-                                        <p className="text-2xl font-black text-cyan-400">Elite</p>
-                                    </div>
-                                </div>
-
-                                <div className="mt-12">
-                                    <Button
-                                        variant="primary"
-                                        size="lg"
-                                        className="w-full py-6 uppercase tracking-[0.3em] font-black text-xs shadow-[0_0_40px_rgba(0,242,255,0.2)]"
-                                        onClick={() => setShowCertificate(true)}
-                                        disabled={!isPassing}
-                                    >
-                                        Establish Certification
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-
-                        {/* Proctoring Matrix */}
-                        <div className="space-y-8">
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Proctoring Matrix</h3>
-                            <Card className="p-10 bg-slate-900/40 backdrop-blur-md border-white/5">
-                                {attempt.violationCount === 0 ? (
-                                    <div className="flex items-center gap-10">
-                                        <div className="w-24 h-24 bg-cyan-500/10 text-cyan-500 rounded-3xl flex items-center justify-center flex-shrink-0 animate-pulse border border-cyan-500/20 shadow-[0_0_30px_rgba(0,242,255,0.15)]">
-                                            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <div className="inline-block px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded mb-2 border border-cyan-500/20">GuardEye™ Verified</div>
-                                            <h4 className="text-xl font-black text-white uppercase tracking-tight">Pristine Session integrity</h4>
-                                            <p className="text-cyan-500/40 text-sm font-medium mt-1 leading-relaxed">No behavioral anomalies or protocol breaches were logged by the AI monitoring subsystem.</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-8">
-                                        <div className="flex items-center justify-between p-8 bg-rose-500/5 rounded-2xl border border-rose-500/10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-rose-500 text-white rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.3)]">
-                                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-black text-rose-500 uppercase tracking-widest leading-none">Anomalies Detected</p>
-                                                    <p className="text-rose-500/40 font-bold text-xs uppercase mt-1">Breach Count: 0{attempt.violationCount}</p>
-                                                </div>
-                                            </div>
-                                            <span className="text-4xl font-black text-rose-500 tracking-tighter">{attempt.violationCount}</span>
-                                        </div>
-
-                                        <div className="grid gap-3">
-                                            {attempt.violations?.map((v: any, idx: number) => (
-                                                <div key={v._id || idx} className="p-6 border border-white/5 rounded-2xl flex items-center justify-between hover:bg-white/[0.03] transition-colors group">
-                                                    <div className="flex items-center gap-6">
-                                                        <span className="text-xs font-black text-cyan-500/30 tabular-nums">/{idx + 1}</span>
-                                                        <div className="h-10 w-px bg-white/5"></div>
-                                                        <div>
-                                                            <div className="flex items-center gap-3 mb-1">
-                                                                <span className="text-[10px] font-black text-white uppercase tracking-tighter">{v.type?.replace(/_/g, ' ')}</span>
-                                                                <span className="text-[10px] text-cyan-500/30 font-bold tabular-nums">[{new Date(v.timestamp).toLocaleTimeString()}]</span>
-                                                            </div>
-                                                            <p className="text-xs text-cyan-500/60 font-medium group-hover:text-cyan-200/80 transition-colors">{v.description}</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest bg-rose-500/10 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/10">High Severity</span>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {attempt.status === 'terminated' && (
-                                            <div className="p-6 bg-slate-900/60 rounded-2xl border-l-4 border-rose-600 text-white flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-rose-600/20 text-rose-500 rounded-full flex items-center justify-center">
-                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-black uppercase tracking-widest text-rose-500 mb-0.5">Instance Terminated</p>
-                                                    <p className="text-cyan-500/40 text-xs font-medium">Auto-shutdown triggered by terminal protocol violation threshold.</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </Card>
-                        </div>
-                    </div>
-
-                    {/* Sidebar Ops */}
-                    <div className="space-y-8 relative z-10">
-                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Ops Center</h3>
-
-                        <Card className="p-8 bg-slate-900/60 text-white border-white/5 shadow-2xl group overflow-hidden relative">
-                            <div className="absolute inset-0 bg-grid opacity-10"></div>
-                            <div className="relative z-10 flex flex-col h-full">
-                                <h4 className="text-xl font-black uppercase tracking-tight mb-4 text-cyan-400">Elite Upskilling</h4>
-                                <p className="text-cyan-500/50 text-sm font-medium mb-10 leading-relaxed max-w-[200px]">Operative performance indicates prime eligibility for the <span className="text-white">Gold Bundle</span> track extension.</p>
-                                <Link href="/assessments">
-                                    <Button variant="primary" className="bg-white text-black hover:bg-cyan-100 w-full py-4 text-xs font-black uppercase tracking-widest border-0 shadow-[0_0_30px_rgba(255,255,255,0.2)]">Explore tracks</Button>
-                                </Link>
-                            </div>
-                        </Card>
-
-                        <Card className="p-8 bg-slate-900/40 backdrop-blur-md border-white/5 group">
-                            <h4 className="text-lg font-black text-white uppercase tracking-tight mb-4 group-hover:text-cyan-400 transition-colors">Career Analytics</h4>
-                            <p className="text-cyan-500/40 text-xs font-medium mb-8 leading-relaxed">Our AI partners analyzed your response patterns. View your talent-market alignment report.</p>
-                            <Button variant="outline" className="w-full py-4 text-[10px] font-black uppercase tracking-widest border-white/10 text-cyan-500/40 group-hover:border-cyan-500/30 group-hover:text-cyan-400 transition-all">Request Analytics</Button>
-                        </Card>
-                    </div>
-                </div>
-            </main>
-
-            {attempt && (
-                <CertificateModal
-                    isOpen={showCertificate}
-                    onClose={() => setShowCertificate(false)}
-                    candidateName={attempt.user?.name || 'Candidate'}
-                    assessmentTitle={attempt.assessment?.title || 'Professional Assessment'}
-                    completionDate={new Date(attempt.completedAt || Date.now()).toLocaleDateString('en-US', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                    })}
-                    certificateId={params.attemptId.slice(-8).toUpperCase()}
-                />
-            )}
-        </div>
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center p-6 text-ink">
+        <h2 className="text-xl font-bold mb-2">Report Not Found</h2>
+        <p className="text-sm text-graphite mb-4">We could not load the requested attempt record.</p>
+        <Link href="/dashboard">
+          <Button variant="primary" size="md">Return to dashboard</Button>
+        </Link>
+      </div>
     );
+  }
+
+  const { meta, score, topics, timing, comparison, integrity, reliability, recommendations, questions } = report;
+  const isPassing = score.passed ?? (score.percentage >= 60);
+
+  const durationMin = Math.floor(timing.totalSeconds / 60);
+  const durationSec = timing.totalSeconds % 60;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-paper">
+      <Navbar />
+
+      <main id="main-content" className="flex-1 max-w-container mx-auto px-5 sm:px-8 py-10 md:py-14 w-full">
+        {/* Back Link & Actions Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-rule gap-4">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs text-graphite hover:text-ink transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to dashboard</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link href={`/api/v1/attempts/${meta.attemptId}/report/pdf`} target="_blank">
+              <Button variant="outline" size="sm" leftIcon={<Printer className="w-4 h-4" />}>
+                Print report
+              </Button>
+            </Link>
+            {isPassing && (
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Award className="w-4 h-4" />}
+                onClick={() => setShowCertificate(true)}
+              >
+                View certificate
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* 1. Result Header */}
+        <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div>
+              <div className="flex items-center gap-2.5 mb-2">
+                <span className="text-xs text-graphite font-medium">
+                  {meta.categoryName}
+                </span>
+                <span className="text-rule-strong">·</span>
+                <span className="text-xs text-graphite font-mono">
+                  Report v{meta.reportVersion}
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight mb-2">
+                {meta.assessmentName}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-graphite mt-3">
+                <span>Candidate: <strong className="text-ink">{meta.candidateName}</strong></span>
+                <span>Submitted: <strong className="text-ink">{formatDate(meta.submittedAt)}</strong></span>
+                <span>Time: <strong className="text-ink">{durationMin}m {durationSec}s</strong> of {Math.floor(meta.timeLimitSeconds / 60)}m</span>
+                {meta.dataCompleteness === 'partial' && (
+                  <span className="text-review font-semibold bg-review-soft px-2 py-0.5 rounded-chip">Historical backfill</span>
+                )}
+              </div>
+            </div>
+
+            {/* Score & Band Header Badge */}
+            <div className="flex items-center gap-6 self-start lg:self-center bg-paper p-5 rounded-card border border-rule">
+              <div>
+                <span className="text-[11px] font-semibold text-graphite uppercase tracking-wider block mb-1">
+                  Overall Score
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-ink tabular-nums">
+                    {score.rawScore} / {score.maxScore}
+                  </span>
+                  <span className="text-lg font-bold text-signal tabular-nums">
+                    ({score.percentage}%)
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-l border-rule pl-6 flex flex-col items-start">
+                <span className="text-[11px] font-semibold text-graphite uppercase tracking-wider block mb-1">
+                  Competency Tier
+                </span>
+                <span className="text-base font-extrabold text-ink">
+                  {score.band.label}
+                </span>
+                <span className="text-[11px] text-graphite">
+                  {isPassing ? 'Passing threshold met' : 'Passing threshold not met'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. How This Score Was Worked Out (Expandable Methodology Drawer) */}
+        <section className="mb-8">
+          <Card className="p-0 overflow-hidden border-rule">
+            <button
+              onClick={() => setShowMethodology(!showMethodology)}
+              className="w-full flex items-center justify-between p-5 bg-paper hover:bg-sheet text-left transition-colors"
+              aria-expanded={showMethodology}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-btn bg-signal-soft text-signal flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-ink">
+                    How this score was worked out
+                  </h3>
+                  <p className="text-xs text-graphite">
+                    Transparent scoring rules, point weights, and unanswered question criteria
+                  </p>
+                </div>
+              </div>
+              <div className="text-graphite pr-2">
+                {showMethodology ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </div>
+            </button>
+
+            {showMethodology && (
+              <div className="p-6 border-t border-rule bg-sheet text-xs text-graphite space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div className="p-3 bg-paper rounded-card border border-rule">
+                    <span className="font-semibold text-ink block mb-1">Marks per Correct</span>
+                    <span className="font-bold text-ink text-sm tabular-nums">
+                      +{score.methodology.marksPerCorrect} pt
+                    </span>
+                  </div>
+                  <div className="p-3 bg-paper rounded-card border border-rule">
+                    <span className="font-semibold text-ink block mb-1">Negative Marking</span>
+                    <span className="font-bold text-ink text-sm tabular-nums">
+                      {score.methodology.negativeMarking > 0 ? `-${score.methodology.negativeMarking} pt` : 'None (0 pt)'}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-paper rounded-card border border-rule">
+                    <span className="font-semibold text-ink block mb-1">Passing Threshold</span>
+                    <span className="font-bold text-ink text-sm tabular-nums">
+                      {score.methodology.passThreshold}%
+                    </span>
+                  </div>
+                  <div className="p-3 bg-paper rounded-card border border-rule">
+                    <span className="font-semibold text-ink block mb-1">Difficulty Weighting</span>
+                    <span className="font-bold text-ink text-sm">
+                      {score.methodology.difficultyWeighted ? 'Active' : 'Flat marks'}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="leading-relaxed">
+                  The final percentage is computed as <code className="font-mono text-ink bg-paper px-1.5 py-0.5 rounded border border-rule">round(rawScore / maxScore × 100, 1)</code>.
+                  Unanswered questions score 0 marks. Questions never reached due to session expiry or early termination are recorded separately.
+                  Proctoring signals are evaluated independently and never alter skill scores.
+                </p>
+
+                <div className="pt-2">
+                  <Link
+                    href="/integrity"
+                    className="inline-flex items-center gap-1.5 font-semibold text-signal hover:underline"
+                  >
+                    <span>Read our public scoring and proctoring methodology</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </Card>
+        </section>
+
+        {/* 3. Topic Breakdown (Strengths & Gaps) */}
+        <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-rule">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Topic Breakdown</h2>
+              <p className="text-xs text-graphite">
+                Diagnostic score distribution across assessment sub-skills
+              </p>
+            </div>
+            <span className="text-xs text-graphite tabular-nums">
+              {topics.items.length} topics evaluated
+            </span>
+          </div>
+
+          {!topics.available ? (
+            <p className="text-xs text-graphite italic">{topics.unavailableReason}</p>
+          ) : (
+            <div className="space-y-5">
+              {topics.items.map((item) => {
+                const pct = item.percentage ?? (item.correct / Math.max(1, item.questionCount)) * 100;
+                return (
+                  <div key={item.topicId} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-ink">{item.name}</span>
+                        {item.lowConfidence && (
+                          <span className="text-[10px] text-graphite bg-paper border border-rule px-2 py-0.2 rounded-chip">
+                            Low sample ({item.questionCount} Qs)
+                          </span>
+                        )}
+                      </div>
+                      <div className="font-mono tabular-nums text-graphite">
+                        {item.percentage !== null ? (
+                          <span className="font-bold text-ink">{item.percentage}% <span className="text-graphite font-normal">({item.correct}/{item.questionCount})</span></span>
+                        ) : (
+                          <span>{item.correct} of {item.questionCount} correct</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-2.5 w-full bg-paper border border-rule rounded-full overflow-hidden relative">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          item.lowConfidence
+                            ? 'bg-graphite/30'
+                            : pct >= 80
+                            ? 'bg-clean'
+                            : pct <= 50
+                            ? 'bg-review'
+                            : 'bg-signal'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(4, pct))}%` }}
+                      />
+                    </div>
+
+                    {item.suppressedReason && (
+                      <p className="text-[10px] text-graphite italic">
+                        {item.suppressedReason}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Strengths & Gaps Derived Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-rule mt-6">
+                <div className="p-4 bg-paper rounded-card border border-rule">
+                  <div className="flex items-center gap-2 mb-2 text-clean font-bold text-xs">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Demonstrated Strengths (≥80%)</span>
+                  </div>
+                  {topics.strengths.length > 0 ? (
+                    <ul className="text-xs text-graphite space-y-1">
+                      {topics.strengths.map((s, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-clean shrink-0" />
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-graphite italic">No topics qualified for high-strength threshold.</p>
+                  )}
+                </div>
+
+                <div className="p-4 bg-paper rounded-card border border-rule">
+                  <div className="flex items-center gap-2 mb-2 text-review font-bold text-xs">
+                    <Target className="w-4 h-4" />
+                    <span>Focus Gaps (≤50%)</span>
+                  </div>
+                  {topics.gaps.length > 0 ? (
+                    <ul className="text-xs text-graphite space-y-1">
+                      {topics.gaps.map((g, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-review shrink-0" />
+                          <span>{g}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-graphite italic">No major topic gaps detected in this attempt.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 4. Timing & Response Pacing */}
+        <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-rule">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Timing & Response Pacing</h2>
+              <p className="text-xs text-graphite">
+                Server-derived response times, dwell patterns, and answer revisions
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-graphite">
+              <Clock className="w-4 h-4 text-signal" />
+              <span>Median: {Math.round(timing.medianSecondsPerQuestion)}s/question</span>
+            </div>
+          </div>
+
+          {/* Time Strip Visual */}
+          {questions.length > 0 && (
+            <div className="mb-6">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-graphite block mb-2">
+                Question Pace & Accuracy Strip
+              </span>
+              <div className="flex items-end gap-1 h-20 p-2 bg-paper rounded-card border border-rule overflow-x-auto">
+                {questions.map((q) => {
+                  const heightPct = Math.min(100, Math.max(15, (q.secondsSpent / Math.max(1, timing.medianSecondsPerQuestion * 2)) * 50));
+                  return (
+                    <div
+                      key={q.position}
+                      className="flex-1 min-w-[10px] flex flex-col items-center justify-end h-full group relative"
+                    >
+                      <div
+                        className={`w-full rounded-t-xs transition-all ${
+                          !q.isAnswered
+                            ? 'bg-rule-strong'
+                            : q.isCorrect
+                            ? 'bg-clean'
+                            : 'bg-review'
+                        }`}
+                        style={{ height: `${heightPct}%` }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-graphite mt-1.5 px-1">
+                <span>Q1</span>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-clean" /> Correct</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-review" /> Incorrect</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-rule-strong" /> Unanswered</span>
+                </div>
+                <span>Q{questions.length}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Observations List */}
+          <div className="space-y-2">
+            {timing.observations.map((obs, idx) => (
+              <div key={idx} className="flex items-start gap-2.5 text-xs text-graphite">
+                <span className="w-1.5 h-1.5 rounded-full bg-signal mt-1.5 shrink-0" />
+                <span>{obs}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 5. Cohort Comparison */}
+        <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-rule">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Cohort Comparison</h2>
+              <p className="text-xs text-graphite">
+                Score positioning relative to verified candidate attempts
+              </p>
+            </div>
+            <span className="text-xs text-graphite tabular-nums">
+              Cohort: {comparison.cohortCount} attempts
+            </span>
+          </div>
+
+          {comparison.available && comparison.percentile !== null ? (
+            <div className="p-5 bg-paper rounded-card border border-rule flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <span className="text-3xl font-extrabold text-ink tabular-nums">
+                  {comparison.percentile}th Percentile
+                </span>
+                <p className="text-xs text-graphite mt-1">
+                  Scored higher than {comparison.percentile}% of candidates on this assessment.
+                </p>
+              </div>
+              {comparison.meanPercent !== null && (
+                <div className="text-xs text-graphite text-left sm:text-right">
+                  <span>Cohort Mean: <strong className="text-ink">{comparison.meanPercent}%</strong></span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-5 bg-paper rounded-card border border-dashed border-rule text-xs text-graphite">
+              <span className="font-semibold text-ink block mb-1">Percentile comparison withheld</span>
+              <p>{comparison.unavailableReason || 'Not enough completed attempts yet to calculate a statistically valid percentile rank.'}</p>
+            </div>
+          )}
+        </section>
+
+        {/* 6. Integrity Record (GuardEye AI) */}
+        <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-rule">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-lg font-bold text-ink">Integrity Record</h2>
+                <StatusChip
+                  variant={integrity.tier === 'clean' ? 'clean' : integrity.tier === 'review' ? 'review' : 'flagged'}
+                  size="sm"
+                >
+                  {integrity.tier === 'clean' ? 'No issues' : integrity.tier === 'review' ? 'Needs review' : 'Major issues'}
+                </StatusChip>
+              </div>
+              <p className="text-xs text-graphite mt-1">
+                Objective proctoring log and monitoring coverage verified by GuardEye AI
+              </p>
+            </div>
+            <span className="text-xs text-graphite tabular-nums">
+              {integrity.events.length} {integrity.events.length === 1 ? 'flag' : 'flags'} logged
+            </span>
+          </div>
+
+          <p className="text-xs text-graphite mb-4 leading-relaxed">
+            {integrity.summaryLine}
+          </p>
+
+          {integrity.events.length > 0 ? (
+            <div className="space-y-2.5">
+              {integrity.events.map((ev, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-card border border-rule bg-paper flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-review shrink-0" />
+                    <div>
+                      <span className="font-bold text-ink">{ev.label}</span>
+                      <span className="text-[11px] text-graphite ml-2 font-mono">[{ev.severity}]</span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-graphite tabular-nums text-[11px]">
+                    {new Date(ev.startedAt).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center bg-paper rounded-card border border-rule">
+              <CheckCircle className="w-7 h-7 text-clean mx-auto mb-2" />
+              <p className="text-xs font-bold text-ink">Clean Examination Session</p>
+              <p className="text-[11px] text-graphite mt-0.5">
+                Full-screen lockdown and continuous webcam heuristics recorded zero violations.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* 7. Recommendations (Study Focus Areas) */}
+        {recommendations.length > 0 && (
+          <section className="bg-sheet border border-rule rounded-panel p-6 sm:p-8 shadow-subtle mb-8">
+            <div className="pb-4 mb-6 border-b border-rule">
+              <h2 className="text-lg font-bold text-ink">Recommended Focus Areas</h2>
+              <p className="text-xs text-graphite">
+                Deterministic study priorities derived from identified diagnostic topic gaps
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {recommendations.map((rec, idx) => (
+                <div key={idx} className="p-4 bg-paper rounded-card border border-rule space-y-2">
+                  <h3 className="text-sm font-bold text-ink">{rec.topicName}</h3>
+                  <ul className="text-xs text-graphite space-y-1.5">
+                    {rec.focusAreas.map((area, aIdx) => (
+                      <li key={aIdx} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-signal mt-1.5 shrink-0" />
+                        <span>{area}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 8. Reliability & Limitations Statement */}
+        <section className="p-6 bg-paper rounded-card border border-rule text-xs text-graphite space-y-3 mb-12">
+          <div className="flex items-center gap-2 text-ink font-bold">
+            <Info className="w-4 h-4 text-signal shrink-0" />
+            <span>Report Reliability & Evidentiary Boundaries</span>
+          </div>
+          <p className="leading-relaxed">
+            {reliability.statement}
+          </p>
+          {reliability.caveats.length > 0 && (
+            <ul className="space-y-1.5 text-[11px] text-graphite pl-4 list-disc">
+              {reliability.caveats.map((cav, idx) => (
+                <li key={idx}>{cav}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+
+      {/* Certificate Modal */}
+      <CertificateModal
+        isOpen={showCertificate}
+        onClose={() => setShowCertificate(false)}
+        candidateName={meta.candidateName}
+        assessmentTitle={meta.assessmentName}
+        completionDate={formatDate(meta.submittedAt)}
+        certificateId={meta.attemptId.slice(-8).toUpperCase()}
+      />
+
+      <Footer />
+    </div>
+  );
 }

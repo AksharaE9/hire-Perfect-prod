@@ -1,21 +1,29 @@
-'use client';
-
 import React from 'react';
 
-interface CardProps {
-    children: React.ReactNode;
-    className?: string;
-    hover?: boolean;
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'paper' | 'interactive';
 }
 
-const Card: React.FC<CardProps> = ({ children, className = '', hover = true }) => {
-    return (
-        <div className={`bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/5 shadow-sm transition-all duration-300 text-white ${hover ? 'card-hover' : ''} ${className}`}>
-            <div className="h-full w-full">
-                {children}
-            </div>
-        </div>
-    );
+export const Card: React.FC<CardProps> = ({
+  children,
+  variant = 'default',
+  className = '',
+  ...props
+}) => {
+  const variantStyles = {
+    default: 'bg-sheet border border-rule shadow-subtle',
+    paper: 'bg-paper border border-rule',
+    interactive: 'bg-sheet border border-rule hover:border-rule-strong hover:shadow-floating transition-all duration-200 cursor-pointer',
+  };
+
+  return (
+    <div
+      className={`rounded-card ${variantStyles[variant]} ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 };
 
 export default Card;

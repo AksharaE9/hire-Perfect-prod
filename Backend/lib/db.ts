@@ -31,8 +31,6 @@ function getMongoUri(): string {
     return uri;
 }
 
-const MONGODB_URI = getMongoUri();
-
 interface MongooseCache {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
@@ -54,6 +52,7 @@ async function connectDB(): Promise<typeof mongoose> {
     }
 
     if (!cached.promise) {
+        const MONGODB_URI = getMongoUri();
         const opts = {
             bufferCommands: false,
             family: 4,

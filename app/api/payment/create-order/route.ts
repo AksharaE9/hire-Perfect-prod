@@ -156,7 +156,8 @@ export async function POST(request: NextRequest) {
             orderId: orderResult.order.id,
             amount,
             currency: 'INR',
-            keyId: process.env.RAZORPAY_KEY_ID,
+            keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+            isMock: Boolean(orderResult.isMock),
         });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Internal server error';

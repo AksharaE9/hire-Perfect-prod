@@ -6,7 +6,6 @@ import Navbar from '@/components/ui/Navbar';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Loading from '@/components/ui/Loading';
-import Badge from '@/components/ui/Badge';
 import { checkAndClearExpiredSession } from '@/lib/sessionUtils';
 
 export default function UserManagement() {
@@ -67,7 +66,7 @@ export default function UserManagement() {
     };
 
     const handleDeleteUser = async (userId: string) => {
-        if (!confirm('Are you sure you want to terminate this operative? This action is irreversible.')) return;
+        if (!confirm('Are you sure you want to delete this user? This action is irreversible.')) return;
 
         try {
             const token = localStorage.getItem('token');
@@ -84,118 +83,113 @@ export default function UserManagement() {
         }
     };
 
-    if (loading && users.length === 0) return <Loading variant="spinner" fullScreen text="Accessing Operative Database..." />;
+    if (loading && users.length === 0) return <Loading variant="spinner" fullScreen text="Accessing User Database..." />;
 
     return (
-        <div className="min-h-screen bg-[#020205] bg-grid selection:bg-cyan-500/30 selection:text-cyan-400 relative overflow-hidden">
-            {/* Cinematic Background Elements */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/5 blur-[120px] rounded-full"></div>
-                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full"></div>
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent animate-scan shadow-[0_0_15px_rgba(0,242,255,0.5)]"></div>
-            </div>
-
+        <div className="min-h-screen bg-paper text-ink">
             <Navbar />
 
-            <main className="container mx-auto px-6 py-24 lg:py-32 page-container relative z-10">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-12">
+            <main className="container mx-auto px-6 py-12 lg:py-16 page-container relative z-10">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
                     <div>
-                        <div className="inline-block px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg mb-4 glow-sm">
-                            Database Management
+                        <div className="inline-block px-3 py-1 bg-blue-tint border border-info-line text-navy text-[11px] font-bold uppercase tracking-wider rounded-lg mb-3">
+                            User Directory
                         </div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.8]">
-                            OPERATIVE <br /><span className="text-gradient">REGISTRY.</span>
+                        <h1 className="text-3xl lg:text-4xl font-black text-navy tracking-tight uppercase">
+                            User Registry
                         </h1>
-                        <p className="text-lg text-slate-400 font-medium mt-6 max-w-lg">
-                            Manage access, roles, and status for all operatives within the HirePerfect ecosystem.
+                        <p className="text-slate text-sm mt-1 max-w-lg">
+                            Manage candidate and administrator permissions and profile access.
                         </p>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                        <div className="relative group">
-                            <input
-                                type="text"
-                                placeholder="SEARCH OPERATIVE..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-                                className="bg-[#0a0a0f]/60 border border-white/10 rounded-xl px-12 py-4 text-xs font-black text-white uppercase tracking-widest focus:border-cyan-500/50 outline-none transition-all w-full md:w-80 group-hover:border-white/20"
-                            />
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-cyan-400 transition-colors">🔍</span>
-                        </div>
+                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
+                            className="bg-white border border-line-strong rounded-lg px-4 py-2.5 text-xs text-ink focus:border-navy outline-none shadow-sm transition-all w-full md:w-80"
+                        />
                         <select
                             value={roleFilter}
                             onChange={(e) => { setRoleFilter(e.target.value); setTimeout(fetchUsers, 0); }}
-                            className="bg-[#0a0a0f]/60 border border-white/10 rounded-xl px-6 py-4 text-xs font-black text-white uppercase tracking-widest focus:border-cyan-500/50 outline-none transition-all cursor-pointer"
+                            className="bg-white border border-line-strong rounded-lg px-4 py-2.5 text-xs font-bold text-navy uppercase tracking-wider focus:border-navy outline-none shadow-sm cursor-pointer"
                         >
-                            <option value="">ALL ROLES</option>
-                            <option value="candidate">CANDIDATE</option>
-                            <option value="admin">ADMIN</option>
+                            <option value="">All Roles</option>
+                            <option value="candidate">Candidate</option>
+                            <option value="admin">Admin</option>
                         </select>
-                        <Button variant="primary" className="px-8 py-4 uppercase tracking-widest text-[10px] font-black shadow-xl shadow-cyan-500/20 bg-cyan-500 border-none" onClick={fetchUsers}>Execute Search</Button>
+                        <Button variant="primary" className="px-5 py-2.5 text-xs font-bold bg-navy hover:bg-navy-2 text-white border-none rounded-lg" onClick={fetchUsers}>
+                            Search
+                        </Button>
                     </div>
                 </div>
 
-                <Card className="overflow-hidden border-white/5 bg-[#0a0a0f]/60 backdrop-blur-xl glass-cyan">
+                <Card className="overflow-hidden border border-line bg-white shadow-sm rounded-xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-white/5 border-b border-white/5">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Operative</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Connectivity</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Role Alignment</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Countermeasures</th>
+                                <tr className="bg-table-head-bg border-b border-table-rule">
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">User</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider">Role</th>
+                                    <th className="px-6 py-3.5 text-xs font-semibold text-slate uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/[0.02]">
-                                {users.map((u) => (
-                                    <tr key={u._id} className="group hover:bg-white/[0.02] transition-colors">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-black text-xs border border-purple-500/20">
-                                                    {u.name?.[0].toUpperCase()}
+                            <tbody className="divide-y divide-table-rule">
+                                {users.map((u, idx) => (
+                                    <tr key={u._id} className={`group hover:bg-table-row-hover transition-colors ${idx % 2 === 1 ? 'bg-table-row-alt' : 'bg-white'}`}>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-blue-tint border border-info-line flex items-center justify-center text-navy font-bold text-xs">
+                                                    {u.name?.[0]?.toUpperCase() || 'U'}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-black text-white uppercase tracking-tight">{u.name}</span>
-                                                    <span className="text-[10px] font-bold text-slate-500 lowercase tracking-tighter mt-0.5">{u.email}</span>
+                                                    <span className="text-sm font-bold text-navy">{u.name}</span>
+                                                    <span className="text-xs text-slate mt-0.5">{u.email}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Synchronized</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-ok"></span>
+                                                    <span className="text-xs font-semibold text-ink">Active</span>
                                                 </div>
-                                                <span className="text-[9px] text-slate-500 uppercase tracking-tighter mt-1">Joined: {new Date(u.createdAt).toLocaleDateString()}</span>
+                                                <span className="text-[11px] text-slate-soft mt-0.5">Joined: {new Date(u.createdAt).toLocaleDateString()}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-6 py-4">
                                             <select
                                                 value={u.role}
                                                 onChange={(e) => handleUpdateUser(u._id, { role: e.target.value })}
-                                                className={`bg-transparent text-[9px] font-black uppercase tracking-widest border py-1 px-3 rounded-lg outline-none cursor-pointer transition-all ${u.role === 'admin'
-                                                    ? 'text-purple-400 border-purple-500/30 bg-purple-500/5'
-                                                    : 'text-cyan-400 border-cyan-500/30 bg-cyan-500/5'
+                                                className={`text-xs font-bold uppercase tracking-wider border py-1 px-2.5 rounded-md outline-none cursor-pointer ${u.role === 'admin'
+                                                    ? 'text-navy border-info-line bg-blue-tint'
+                                                    : 'text-ink border-line bg-mist'
                                                     }`}
                                             >
-                                                <option value="candidate" className="bg-[#020205]">CANDIDATE</option>
-                                                <option value="admin" className="bg-[#020205]">ADMIN</option>
+                                                <option value="candidate">Candidate</option>
+                                                <option value="admin">Admin</option>
                                             </select>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleDeleteUser(u._id)}
-                                                    className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-lg hover:shadow-rose-500/20"
-                                                    title="TERMINATE OPERATIVE"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
+                                        <td className="px-6 py-4 text-right">
+                                            <button
+                                                onClick={() => handleDeleteUser(u._id)}
+                                                className="px-3 py-1 rounded-md bg-danger-bg border border-danger-line text-danger text-xs font-bold hover:bg-danger hover:text-white transition-all"
+                                                title="Delete User"
+                                            >
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
+                                {users.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-slate text-sm">No users found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

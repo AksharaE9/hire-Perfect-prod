@@ -32,7 +32,7 @@ export function storeLoginTimestamp(): void {
  * @returns true  if the session is still valid (caller can proceed)
  *          false if the session has expired (caller should stop; redirect in progress)
  */
-export function checkAndClearExpiredSession(router: AppRouterInstance): boolean {
+export function checkAndClearExpiredSession(router: AppRouterInstance, shouldRedirect: boolean = true): boolean {
     if (typeof window === 'undefined') {
         // SSR — skip check, always return true so the page can attempt to render.
         return true;
@@ -43,6 +43,9 @@ export function checkAndClearExpiredSession(router: AppRouterInstance): boolean 
 
     // No token at all → not logged in
     if (!token) {
+        if (shouldRedirect) {
+            router.push('/login');
+        }
         return false;
     }
 
@@ -55,7 +58,9 @@ export function checkAndClearExpiredSession(router: AppRouterInstance): boolean 
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('loginAt');
-            router.push('/login');
+            if (shouldRedirect) {
+                router.push('/login');
+            }
             return false;
         }
     } else {

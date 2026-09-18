@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface LoadingProps {
-    variant?: 'spinner' | 'dots' | 'pulse' | 'skeleton';
-    size?: 'sm' | 'md' | 'lg';
+    variant?: 'spinner' | 'dots' | 'pulse' | 'skeleton' | 'orbit';
+    size?: 'sm' | 'md' | 'lg' | 'xl';
     fullScreen?: boolean;
     text?: string;
     className?: string;
@@ -17,45 +17,90 @@ export default function Loading({
     text,
     className = '',
 }: LoadingProps) {
-    const sizes = {
-        sm: 'w-6 h-6',
-        md: 'w-12 h-12',
-        lg: 'w-16 h-16',
+    const sizeConfig = {
+        sm: { box: 'w-6 h-6', stroke: 3, radius: 9, center: 12, dot: 'w-1.5 h-1.5' },
+        md: { box: 'w-10 h-10', stroke: 3.5, radius: 15, center: 20, dot: 'w-2 h-2' },
+        lg: { box: 'w-14 h-14', stroke: 4, radius: 21, center: 28, dot: 'w-2.5 h-2.5' },
+        xl: { box: 'w-20 h-20', stroke: 4.5, radius: 30, center: 40, dot: 'w-3.5 h-3.5' },
     };
 
+    const current = sizeConfig[size] || sizeConfig.md;
+
+    // Smooth Dual-Arc Spinner with subtle brand node
     const Spinner = () => (
-        <div className="flex flex-col items-center justify-center gap-4">
-            <svg className={`animate-spin ${sizes[size]} text-primary-500`} viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            {text && <p className="text-gray-600 dark:text-gray-400 font-medium">{text}</p>}
-        </div>
-    );
-
-    const Dots = () => (
-        <div className="flex flex-col items-center justify-center gap-4">
-            <div className="flex gap-2">
-                <div className={`${size === 'sm' ? 'w-2 h-2' : size === 'md' ? 'w-3 h-3' : 'w-4 h-4'} bg-primary-500 rounded-full animate-bounce`} style={{ animationDelay: '0ms' }}></div>
-                <div className={`${size === 'sm' ? 'w-2 h-2' : size === 'md' ? 'w-3 h-3' : 'w-4 h-4'} bg-primary-500 rounded-full animate-bounce`} style={{ animationDelay: '150ms' }}></div>
-                <div className={`${size === 'sm' ? 'w-2 h-2' : size === 'md' ? 'w-3 h-3' : 'w-4 h-4'} bg-primary-500 rounded-full animate-bounce`} style={{ animationDelay: '300ms' }}></div>
+        <div className="flex flex-col items-center justify-center gap-3.5" role="status" aria-live="polite">
+            <div className={`relative ${current.box} flex items-center justify-center`}>
+                <svg
+                    className="w-full h-full animate-smooth-spin"
+                    viewBox="0 0 50 50"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    {/* Background track circle */}
+                    <circle
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        className="text-line opacity-60"
+                    />
+                    {/* Smooth glowing active gradient arc */}
+                    <circle
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeDasharray="95 150"
+                        className="text-navy"
+                    />
+                </svg>
+                {/* Center brand pulse dot for visual polish */}
+                <div className="absolute w-2 h-2 rounded-full bg-navy/30 animate-pulse-ring" />
             </div>
-            {text && <p className="text-gray-600 dark:text-gray-400 font-medium">{text}</p>}
+            {text && (
+                <p className="text-slate text-xs font-semibold tracking-wide animate-pulse">
+                    {text}
+                </p>
+            )}
+            <span className="sr-only">{text || 'Loading...'}</span>
         </div>
     );
 
+    // Smooth Flowing Dots
+    const Dots = () => (
+        <div className="flex flex-col items-center justify-center gap-3" role="status" aria-live="polite">
+            <div className="flex items-center gap-2">
+                <div className={`${current.dot} bg-navy rounded-full animate-bounce`} style={{ animationDuration: '0.9s', animationDelay: '0ms' }} />
+                <div className={`${current.dot} bg-navy/80 rounded-full animate-bounce`} style={{ animationDuration: '0.9s', animationDelay: '150ms' }} />
+                <div className={`${current.dot} bg-navy/60 rounded-full animate-bounce`} style={{ animationDuration: '0.9s', animationDelay: '300ms' }} />
+            </div>
+            {text && <p className="text-slate text-xs font-semibold">{text}</p>}
+            <span className="sr-only">{text || 'Loading...'}</span>
+        </div>
+    );
+
+    // Smooth Breathing Pulse Orb
     const Pulse = () => (
-        <div className="flex flex-col items-center justify-center gap-4">
-            <div className={`${sizes[size]} bg-primary-500 rounded-full animate-pulse`}></div>
-            {text && <p className="text-gray-600 dark:text-gray-400 font-medium">{text}</p>}
+        <div className="flex flex-col items-center justify-center gap-3" role="status" aria-live="polite">
+            <div className={`relative ${current.box} flex items-center justify-center`}>
+                <div className="absolute inset-0 rounded-full bg-blue-tint animate-pulse-ring" />
+                <div className="w-1/2 h-1/2 rounded-full bg-navy shadow-sm animate-pulse" />
+            </div>
+            {text && <p className="text-slate text-xs font-semibold">{text}</p>}
+            <span className="sr-only">{text || 'Loading...'}</span>
         </div>
     );
 
+    // Shimmer Skeleton
     const Skeleton = () => (
-        <div className="w-full space-y-4">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-3/4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-full"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-5/6"></div>
+        <div className="w-full space-y-3" role="status" aria-live="polite">
+            <div className="h-4 rounded-lg skeleton-shimmer w-3/4" />
+            <div className="h-4 rounded-lg skeleton-shimmer w-full" />
+            <div className="h-4 rounded-lg skeleton-shimmer w-5/6" />
+            <span className="sr-only">Loading content...</span>
         </div>
     );
 
@@ -74,8 +119,10 @@ export default function Loading({
 
     if (fullScreen) {
         return (
-            <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50">
-                {renderLoading()}
+            <div className="fixed inset-0 bg-paper/85 backdrop-blur-md flex items-center justify-center z-[150] p-6 transition-all duration-300">
+                <div className="bg-white border border-line rounded-2xl p-8 sm:p-10 shadow-md flex flex-col items-center max-w-sm w-full mx-auto text-center animate-in fade-in zoom-in-95 duration-200">
+                    {renderLoading()}
+                </div>
             </div>
         );
     }
@@ -87,26 +134,32 @@ export default function Loading({
     );
 }
 
-// Skeleton components for specific use cases
+// Pre-built Smooth Skeleton Cards for Data Tables & Grids
 export function SkeletonCard() {
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded skeleton w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-5/6"></div>
+        <div className="bg-white border border-line rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex justify-between items-center">
+                <div className="h-4 rounded-md skeleton-shimmer w-1/3" />
+                <div className="h-5 rounded-md skeleton-shimmer w-16" />
+            </div>
+            <div className="h-7 rounded-md skeleton-shimmer w-2/3" />
+            <div className="space-y-2 pt-2 border-t border-line">
+                <div className="h-3.5 rounded-md skeleton-shimmer w-full" />
+                <div className="h-3.5 rounded-md skeleton-shimmer w-4/5" />
+            </div>
         </div>
     );
 }
 
 export function SkeletonText({ lines = 3 }: { lines?: number }) {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
             {Array.from({ length: lines }).map((_, i) => (
                 <div
                     key={i}
-                    className="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton"
-                    style={{ width: i === lines - 1 ? '80%' : '100%' }}
-                ></div>
+                    className="h-3.5 rounded-md skeleton-shimmer"
+                    style={{ width: i === lines - 1 ? '70%' : '100%' }}
+                />
             ))}
         </div>
     );

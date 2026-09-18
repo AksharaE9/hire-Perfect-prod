@@ -3,157 +3,239 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Button from './Button';
+import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { Button } from './Button';
 import { CameraManager } from '@/lib/cameraManager';
 
-const Navbar = () => {
-    const pathname = usePathname();
-    const router = useRouter();
-    const [scrolled, setScrolled] = useState(false);
-    const [user, setUser] = useState<any>(null);
+export function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<{ name?: string; role?: string; email?: string } | null>(null);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
-        }
-
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const handleLogout = () => {
-        CameraManager.stop();
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('loginAt');
+  useEffect(() => {
+    const rawUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (rawUser) {
+      try {
+        const parsed = JSON.parse(rawUser);
+        setUser(parsed);
+      } catch {
         setUser(null);
-        router.push('/');
-    };
+      }
+    } else {
+      setUser(null);
+    }
+    setMobileOpen(false);
+  }, [pathname]);
 
-    // Always visible
-    const publicLinks = [
-        { name: 'Assessments', href: '/assessments' },
-        { name: 'Pricing', href: '/pricing' },
-        { name: 'About Us', href: '/about' },
-    ];
+  const handleLogout = () => {
+    CameraManager.stop();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('loginAt');
+    setUser(null);
+    router.push('/');
+  };
 
-    // Only visible when logged in
-    const authLinks = [
-        { name: 'My Assessments', href: '/my-assessments' },
-        { name: 'Challenges', href: '/coding' },
-        { name: 'Projects', href: '/projects' },
-        { name: 'Dashboard', href: '/dashboard' },
-        { name: 'Support', href: '/#faq-submission-form' },
-    ];
+  const navLinks = [
+    { label: 'Assessments', href: '/assessments' },
+    { label: 'How it works', href: '/integrity' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'About', href: '/about' },
+  ];
 
-    // Admin-only quick links
-    const adminLinks = [
-        { name: 'Home', href: '/admin/dashboard' },
-        { name: 'Candidates', href: '/admin/candidates' },
-        { name: 'Challenges', href: '/admin/challenges' },
-        { name: 'Submissions', href: '/admin/submissions' },
-        { name: 'Projects', href: '/admin/projects' },
-        { name: 'Skills', href: '/admin/skills' },
-    ];
+  const authWorkspaceLinks = [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'My Assessments', href: '/my-assessments' },
+    { label: 'Challenges', href: '/coding' },
+    { label: 'Projects', href: '/projects' },
+  ];
 
-    return (
-        <nav className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-[95%] max-w-7xl ${scrolled ? 'top-2' : 'top-4'}`}>
-            <div className={`glass py-3 px-6 rounded-2xl flex items-center justify-between shadow-glass border border-white/20 transition-all duration-500 ${scrolled ? 'px-8 shadow-premium py-2' : ''}`}>
-                <div className="flex items-center space-x-8">
-                    <Link href="/" className="flex items-center space-x-2 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform shadow-cyan-500/20">
-                            <span className="text-white font-black text-xl">H</span>
-                        </div>
-                        <span className="text-xl font-black tracking-tighter text-white">
-                            HIRE<span className="text-cyan-400 font-black">PERFECT</span>
-                        </span>
-                    </Link>
+  const adminLinks = [
+    { label: 'Admin Dashboard', href: '/admin/dashboard' },
+    { label: 'Candidates', href: '/admin/candidates' },
+    { label: 'Assessments Manager', href: '/admin/assessments' },
+    { label: 'Submissions', href: '/admin/submissions' },
+  ];
 
-                    <div className="hidden md:flex items-center space-x-1">
-                        {/* Public links */}
-                        {publicLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${pathname === link.href
-                                        ? 'bg-cyan-500/10 text-cyan-400'
-                                        : 'text-slate-400 hover:bg-white/5 hover:text-cyan-400'
-                                    }`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
+  return (
+    <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-md border-b border-rule transition-colors">
+      <div className="max-w-container mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+        {/* Brand Logo Wordmark */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <span className="w-8 h-8 rounded-btn bg-signal flex items-center justify-center text-white font-bold text-base shadow-subtle group-hover:bg-signal/90 transition-colors">
+            H
+          </span>
+          <span className="font-display font-bold text-lg tracking-tight text-ink">
+            HirePerfect
+          </span>
+        </Link>
 
-                        {/* Candidate Workspace Dropdown */}
-                        {user && user.role !== 'admin' && (
-                            <div className="relative group">
-                                <button className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${['/dashboard', '/coding', '/projects', '/my-assessments'].includes(pathname) ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-cyan-400'}`}>
-                                    Workspace <span className="text-[8px] opacity-70">▼</span>
-                                </button>
-                                <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                    {authLinks.map(link => (
-                                        <Link key={link.name} href={link.href} className={`block px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${pathname === link.href ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-cyan-400'}`}>
-                                            {link.name}
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Admin Dropdown */}
-                        {user?.role === 'admin' && (
-                            <div className="relative group">
-                                <button className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${pathname.startsWith('/admin') ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-purple-400'}`}>
-                                    Mission Control <span className="text-[8px] opacity-70">▼</span>
-                                </button>
-                                <div className="absolute top-full right-0 mt-3 w-48 p-2 bg-[#0a0a0f]/95 backdrop-blur-2xl border border-purple-500/20 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.15)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                    {adminLinks.map(link => (
-                                        <Link key={link.name} href={link.href} className={`block px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${pathname === link.href ? 'bg-purple-500/10 text-purple-400' : 'text-slate-400 hover:bg-white/5 hover:text-purple-400'}`}>
-                                            {link.name}
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                    {user ? (
-                        <div className="flex items-center space-x-4">
-                            <Link href={`/profile/${user?.id || user?._id || ''}`} className="flex items-center gap-3 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl hidden md:flex border border-white/5 transition-all group">
-                                <div className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                                    <span className="text-white font-bold text-xs">
-                                        {user?.name?.charAt(0).toUpperCase()}
-                                    </span>
-                                </div>
-                                <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{user?.name}</span>
-                            </Link>
-                            <Button variant="primary" size="sm" onClick={handleLogout} className="shadow-lg shadow-cyan-900/20">
-                                Logout
-                            </Button>
-                        </div>
-                    ) : (
-                        <>
-                            <Link href="/login">
-                                <Button variant="ghost" size="sm" className="font-bold text-cyan-400">Login</Button>
-                            </Link>
-                            <Link href="/signup">
-                                <Button variant="primary" size="sm" className="shadow-lg shadow-cyan-900/20">
-                                    Sign Up
-                                </Button>
-                            </Link>
-                        </>
-                    )}
-                </div>
-            </div>
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium px-3.5 py-2 rounded-btn transition-colors ${
+                  isActive
+                    ? 'text-signal bg-signal-soft'
+                    : 'text-graphite hover:text-ink hover:bg-sheet'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
-    );
-};
+
+        {/* Desktop Auth / Action Area */}
+        <div className="hidden md:flex items-center gap-3">
+          {user ? (
+            <div className="relative group">
+              <button
+                type="button"
+                className="flex items-center gap-2 text-sm font-medium text-ink bg-sheet border border-rule px-3.5 py-2 rounded-btn hover:border-rule-strong transition-colors"
+              >
+                <User className="w-4 h-4 text-signal" />
+                <span className="max-w-[120px] truncate">{user.name || 'Account'}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-graphite" />
+              </button>
+
+              <div className="absolute right-0 mt-1.5 w-52 bg-sheet border border-rule rounded-card shadow-floating p-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                {user.role === 'admin' ? (
+                  adminLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="block px-3 py-2 text-xs font-medium text-ink hover:bg-paper rounded-chip transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ))
+                ) : (
+                  authWorkspaceLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="block px-3 py-2 text-xs font-medium text-ink hover:bg-paper rounded-chip transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ))
+                )}
+                <div className="my-1 border-t border-rule" />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-flagged hover:bg-flagged-soft rounded-chip transition-colors text-left"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log out</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  Log in
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button variant="primary" size="sm">
+                  Create account
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Hamburger Toggle */}
+        <div className="flex md:hidden items-center">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="p-2 text-graphite hover:text-ink rounded-btn focus-visible:outline-2 focus-visible:outline-signal"
+          >
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Slide-over Sheet Menu */}
+      {mobileOpen && (
+        <div className="fixed inset-0 top-16 z-50 bg-sheet border-t border-rule md:hidden flex flex-col justify-between p-6 animate-fadeIn">
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-graphite px-3 mb-1">
+              Menu
+            </span>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-base font-medium px-4 py-3 rounded-btn min-h-[44px] flex items-center transition-colors ${
+                    isActive ? 'bg-signal-soft text-signal' : 'text-ink hover:bg-paper'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+
+            {user && (
+              <>
+                <div className="my-2 border-t border-rule" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-graphite px-3 mb-1">
+                  {user.role === 'admin' ? 'Admin Navigation' : 'Workspace'}
+                </span>
+                {(user.role === 'admin' ? adminLinks : authWorkspaceLinks).map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-base font-medium px-4 py-3 rounded-btn min-h-[44px] flex items-center text-ink hover:bg-paper transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 pt-6 border-t border-rule">
+            {user ? (
+              <Button
+                variant="destructive"
+                size="lg"
+                onClick={handleLogout}
+                className="w-full min-h-[48px]"
+              >
+                Log out
+              </Button>
+            ) : (
+              <>
+                <Link href="/login" className="w-full">
+                  <Button variant="secondary" size="lg" className="w-full min-h-[48px]">
+                    Log in
+                  </Button>
+                </Link>
+                <Link href="/signup" className="w-full">
+                  <Button variant="primary" size="lg" className="w-full min-h-[48px]">
+                    Create account
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
 
 export default Navbar;
